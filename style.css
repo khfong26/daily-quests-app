@@ -1,0 +1,55 @@
+body {
+  font-family: 'Roboto', sans-serif;
+  background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+  color: #e6e6e6;
+}
+
+.font-orbitron {
+  font-family: 'Orbitron', sans-serif;
+}
+
+.quest-card {
+  transition: all 0.3s ease;
+}
+
+.quest-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 10px 20px rgba(0, 0, 0, 0.3);
+}
+
+.attribute-bar {
+  height: 8px;
+  border-radius: 4px;
+}
+
+.streak-animation {
+  animation: pulse 1.5s infinite;
+}
+
+@keyframes pulse {
+  0% { box-shadow: 0 0 0 0 rgba(132, 204, 22, 0.7); }
+  70% { box-shadow: 0 0 0 10px rgba(132, 204, 22, 0); }
+  100% { box-shadow: 0 0 0 0 rgba(132, 204, 22, 0); }
+}
+
+.rank-badge {
+  background: linear-gradient(45deg, #FFD700, #FFA500);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.main-quest { border-left: 4px solid #FF6B6B; }
+.side-quest { border-left: 4px solid #4ECDC4; }
+
+.attribute-tag {
+  font-size: 0.75rem;
+  padding: 2px 6px;
+  border-radius: 12px;
+  margin-right: 4px;
+}
+
+.physical { background-color: #FF6B6B; color: white; }
+.mental { background-color: #4ECDC4; color: white; }
+.career { background-color: #45B7D1; color: white; }
+.studying { background-color: #96CEB4; color: white; }
