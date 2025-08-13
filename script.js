@@ -1,157 +1,161 @@
-const App = () => {
-  // Load saved quests and stats or default initial state
-  const savedQuests = JSON.parse(localStorage.getItem('quests'));
-  const savedStats = JSON.parse(localStorage.getItem('userStats'));
+const { useState, useEffect } = React;
 
-  const initialQuests = savedQuests ?? [
-    { id: 1, title: "Morning Workout", description: "Complete 20 minutes of exercise", type: "main", attribute: "Physical Health", completed: false, streak: 7 },
-    { id: 2, title: "Meditate", description: "Practice mindfulness for 10 minutes", type: "main", attribute: "Mental State", completed: false, streak: 3 },
-    { id: 3, title: "Work on Project", description: "Make progress on important work", type: "main", attribute: "Career Progression", completed: false, streak: 5 },
-    { id: 4, title: "Read 20 Pages", description: "Expand your knowledge", type: "main", attribute: "Studying", completed: false, streak: 0 },
-    { id: 5, title: "Drink 8 Glasses of Water", description: "Stay hydrated throughout the day", type: "side", attribute: "Physical Health", completed: false, streak: 12 },
-    { id: 6, title: "Write in Journal", description: "Reflect on your day", type: "side", attribute: "Mental State", completed: false, streak: 2 },
-    { id: 7, title: "Learn New Skill", description: "Spend 30 minutes learning something new", type: "side", attribute: "Studying", completed: false, streak: 8 },
-    { id: 8, title: "Network with Colleagues", description: "Reach out to professional contacts", type: "side", attribute: "Career Progression", completed: false, streak: 1 }
-  ];
+// Rank structure
+const ranks = [
+  "Iron", "Bronze", "Silver", "Gold",
+  "Platinum", "Diamond", "Emerald"
+];
+const levelsPerRank = 3;
+const xpPerLevel = 100;
 
-  const initialUserStats = savedStats ?? {
-    rank: "Gold",
-    xp: 245,
-    totalPoints: 245,
-    streak: 12,
-    combo: 1.0,
-    attributes: {
-      "Physical Health": 45,
-      "Mental State": 38,
-      "Career Progression": 62,
-      "Studying": 40
+function App() {
+  const [quests, setQuests] = useState([]);
+  const [xp, setXp] = useState(0);
+  const [streak, setStreak] = useState(0);
+  const [combo, setCombo] = useState(1);
+
+  // Load saved data
+  useEffect(() => {
+    const saved = JSON.parse(localStorage.getItem("dailyQuestsApp"));
+    if (saved) {
+      setQuests(saved.quests || []);
+      setXp(saved.xp || 0);
+      setStreak(saved.streak || 0);
+      setCombo(saved.combo || 1);
     }
-  };
+  }, []);
 
-  const [quests, setQuests] = React.useState(initialQuests);
-  const [userStats, setUserStats] = React.useState(initialUserStats);
-
-  // Save to localStorage on changes
-  React.useEffect(() => {
-    localStorage.setItem('quests', JSON.stringify(quests));
-  }, [quests]);
-
-  React.useEffect(() => {
-    localStorage.setItem('userStats', JSON.stringify(userStats));
-  }, [userStats]);
-
-  // Rank thresholds
-  const rankThresholds = [
-    { name: "Bronze", min: 0, max: 99, color: "#CD7F32" },
-    { name: "Silver", min: 100, max: 199, color: "#C0C0C0" },
-    { name: "Gold", min: 200, max: 399, color: "#FFD700" },
-    { name: "Platinum", min: 400, max: 699, color: "#E5E4E2" },
-    { name: "Diamond", min: 700, max: Infinity, color: "#B9F2FF" }
-  ];
-
-  const getRankInfo = (xp) => {
-    return rankThresholds.find(r => xp >= r.min && xp <= r.max) || rankThresholds[rankThresholds.length - 1];
-  };
-
-  const currentRank = getRankInfo(userStats.xp);
-
-  // Toggle quest completed state & update stats
-  const toggleQuest = (id) => {
-    setQuests(prev => prev.map(quest => {
-      if (quest.id === id) {
-        const completed = !quest.completed;
-        const points = quest.type === "main" ? 10 : 5;
-        const streakBonus = quest.streak >= 5 ? 5 : 0;
-        const totalPoints = points + streakBonus;
-
-        setUserStats(prevStats => {
-          let newXP = completed ? prevStats.xp + totalPoints : prevStats.xp - (quest.type === "main" ? 10 : 0);
-          let newStreak = completed ? prevStats.streak + 1 : 0;
-          let newCombo = prevStats.combo;
-
-          // Combo multiplier if all main quests completed
-          const allMainCompleted = quests.filter(q => q.type === "main" && q.id !== id)
-            .every(q => q.completed) && completed;
-
-          if (allMainCompleted && quests.filter(q => q.type === "main").length > 0) {
-            newXP = Math.floor(newXP * 1.5);
-            newCombo = 1.5;
-          } else {
-            newCombo = 1.0;
-          }
-
-          // Update attributes
-          const newAttributes = { ...prevStats.attributes };
-          if (completed) {
-            newAttributes[quest.attribute] = Math.min(100, newAttributes[quest.attribute] + points);
-          }
-
-          return {
-            ...prevStats,
-            xp: newXP,
-            totalPoints: newXP,
-            streak: newStreak,
-            combo: newCombo,
-            attributes: newAttributes
-          };
-        });
-
-        return {
-          ...quest,
-          completed,
-          streak: completed ? quest.streak + 1 : 0
-        };
-      }
-      return quest;
+  // Save on change
+  useEffect(() => {
+    localStorage.setItem("dailyQuestsApp", JSON.stringify({
+      quests, xp, streak, combo
     }));
-  };
+  }, [quests, xp, streak, combo]);
 
-  const mainQuests = quests.filter(q => q.type === "main");
-  const sideQuests = quests.filter(q => q.type === "side");
-  const allMainCompleted = mainQuests.every(q => q.completed);
+  function addQuest(name, type) {
+    setQuests([...quests, { name, type, done: false }]);
+  }
+
+  function toggleQuest(index) {
+    const updated = [...quests];
+    if (!updated[index].done) {
+      // Award XP when completing a quest
+      let gained = updated[index].type === "main" ? 30 : 10;
+      gained *= combo;
+      setXp(prev => prev + gained);
+      setCombo(prev => prev + 1);
+      setStreak(prev => prev + 1);
+    }
+    updated[index].done = !updated[index].done;
+    setQuests(updated);
+  }
+
+  function resetDay() {
+    setQuests(prev => prev.map(q => ({ ...q, done: false })));
+    setCombo(1);
+  }
+
+  function getRankInfo() {
+    const totalLevels = Math.floor(xp / xpPerLevel);
+    const rankIndex = Math.floor(totalLevels / levelsPerRank);
+    const levelInRank = (totalLevels % levelsPerRank) + 1;
+    return {
+      rank: ranks[Math.min(rankIndex, ranks.length - 1)],
+      level: levelInRank
+    };
+  }
+
+  const { rank, level } = getRankInfo();
+  const currentLevelXp = xp % xpPerLevel;
+  const xpProgress = (currentLevelXp / xpPerLevel) * 100;
 
   return (
-    <div className="min-h-screen bg-gray-900 text-gray-200 p-4 font-roboto">
-        <h1 className="font-orbitron text-3xl mb-6">Daily Quests</h1>
+    <div className="p-6 font-['Roboto'] bg-gray-900 text-white min-h-screen">
+      <h1 className="text-3xl font-bold mb-4 text-center">Daily Quests</h1>
 
-        {/* Main Quests */}
-        <section className="mb-8">
-        <h2 className="font-orbitron text-xl mb-3">Main Quests</h2>
-        {mainQuests.map(q => (
-            <div
-            key={q.id}
-            onClick={() => toggleQuest(q.id)}
-            className={`p-4 rounded-lg mb-3 cursor-pointer transition ${
-                q.completed ? "bg-green-700" : "bg-gray-800 hover:bg-gray-700"
-            }`}
-            >
-            <h3 className="text-lg font-semibold">{q.title}</h3>
-            <p className="text-sm text-gray-400">{q.description}</p>
-            </div>
-        ))}
-        </section>
+      {/* Stats Panel */}
+      <div className="flex justify-around bg-gray-800 p-4 rounded-lg mb-6">
+        <div>
+          <p className="text-sm">Rank</p>
+          <p className="text-xl font-bold">{rank} {level}</p>
+        </div>
+        <div>
+          <p className="text-sm">Streak</p>
+          <p className="text-xl font-bold">{streak}</p>
+        </div>
+        <div>
+          <p className="text-sm">Combo</p>
+          <p className="text-xl font-bold">x{combo}</p>
+        </div>
+      </div>
 
-        {/* Side Quests */}
-        <section>
-        <h2 className="font-orbitron text-xl mb-3">Side Quests</h2>
-        {sideQuests.map(q => (
-            <div
-            key={q.id}
-            onClick={() => toggleQuest(q.id)}
-            className={`p-4 rounded-lg mb-3 cursor-pointer transition ${
-                q.completed ? "bg-blue-700" : "bg-gray-800 hover:bg-gray-700"
-            }`}
+      {/* XP Bar */}
+      <div className="mb-6">
+        <div className="w-full bg-gray-700 rounded-full h-4">
+          <div
+            className="bg-green-500 h-4 rounded-full transition-all duration-500"
+            style={{ width: `${xpProgress}%` }}
+          ></div>
+        </div>
+        <p className="text-center mt-1">{currentLevelXp} / {xpPerLevel} XP</p>
+      </div>
+
+      {/* Quest List */}
+      <div>
+        {quests.map((q, i) => (
+          <div
+            key={i}
+            className={`flex items-center justify-between p-3 mb-2 rounded-lg ${q.done ? "bg-green-700" : "bg-gray-800"}`}
+          >
+            <span>{q.name} ({q.type})</span>
+            <button
+              onClick={() => toggleQuest(i)}
+              className="bg-blue-500 px-3 py-1 rounded hover:bg-blue-600"
             >
-            <h3 className="text-lg font-semibold">{q.title}</h3>
-            <p className="text-sm text-gray-400">{q.description}</p>
-            </div>
+              {q.done ? "Undo" : "Done"}
+            </button>
+          </div>
         ))}
-        </section>
+      </div>
+
+      {/* Add Quest */}
+      <div className="mt-6 flex gap-2">
+        <input
+          type="text"
+          placeholder="Quest name"
+          className="p-2 rounded bg-gray-800 flex-1"
+          id="questName"
+        />
+        <select id="questType" className="p-2 rounded bg-gray-800">
+          <option value="main">Main</option>
+          <option value="side">Side</option>
+        </select>
+        <button
+          onClick={() => {
+            const name = document.getElementById("questName").value.trim();
+            const type = document.getElementById("questType").value;
+            if (name) {
+              addQuest(name, type);
+              document.getElementById("questName").value = "";
+            }
+          }}
+          className="bg-green-500 px-4 py-2 rounded hover:bg-green-600"
+        >
+          Add
+        </button>
+      </div>
+
+      {/* End of Day */}
+      <div className="mt-6 text-center">
+        <button
+          onClick={resetDay}
+          className="bg-red-500 px-4 py-2 rounded hover:bg-red-600"
+        >
+          End Day (Reset)
+        </button>
+      </div>
     </div>
-    );
+  );
+}
 
-};
-
-const container = document.getElementById('app');
-const root = ReactDOM.createRoot(container);
-root.render(<App />);
+ReactDOM.createRoot(document.getElementById("app")).render(<App />);
