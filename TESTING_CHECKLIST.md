@@ -61,36 +61,46 @@ Keep dark gradient background and readable fonts."
 
 **Testing Checklist:**
 
-* [ ] Quest cards display in a responsive grid layout.
-* [ ] Buttons, inputs, and quest cards look consistent and are clickable.
-* [ ] XP bar animates smoothly on quest completion.
-* [ ] Streak increments only once per day if at least one main quest is completed.
-* [ ] Combo increases per consecutive quest completed in a single day.
-* [ ] Fonts, colors, gradient background, and spacing look polished on desktop and mobile.
-* [ ] XP per quest and XP required to level up scale correctly by rank.
+* [*] Quest cards display in a responsive grid layout.
+* [*] Buttons, inputs, and quest cards look consistent and are clickable.
+* [*] XP bar animates smoothly on quest completion.
+* [*] Streak increments only once per day if at least one main quest is completed.
+* [*] Combo increases per consecutive quest completed in a single day.
+* [*] Fonts, colors, gradient background, and spacing look polished on desktop and mobile.
+* [*] XP per quest and XP required to level up scale correctly by rank.
 
 ---
 
-## Step 5 — Recurring / daily quests with streak effects
+## Step 5 — Recurring / daily quests with auto day tracking
 
 **Agent Prompt:**
-"Add optional recurring quests: allow users to mark a quest as daily or weekly. On resetDay, reset only the daily quests automatically, and weekly quests remain until manually completed. Update streak and combo logic to account for completed main quests. Persist state in localStorage."
+"Add optional recurring quests: allow users to mark a quest as daily or weekly. Replace the manual End Day button with automatic day tracking: on app load, detect if a new day has started. Reset only daily quests automatically, and weekly quests remain until completed manually. Update streak and combo logic:
+
+Daily streak increments only if at least one main quest was completed the previous day.
+
+Combo counts consecutive quests completed within a day.
+Persist all state in localStorage."
 
 **Testing Checklist:**
 
 * [ ] Can you mark quests as daily or weekly?
-* [ ] Clicking End Day resets only daily quests.
+* [ ] Daily quests reset automatically when a new day begins.
 * [ ] Weekly quests remain until completed manually.
-* [ ] Daily streak increments correctly only if at least one main quest is completed.
+* [ ] Daily streak increments correctly if at least one main quest is completed.
 * [ ] Combo resets at the start of each new day.
 * [ ] State persists correctly after refresh.
 
 ---
 
-## Step 6 — Rank decay / penalties
+## Step 6 — Rank decay / progressive XP scaling
 
 **Agent Prompt:**
-"Implement rank decay: if the user misses a day without completing any main quests, deduct XP from the total. Ensure the XP never drops below 0. Future XP required to level up should scale exponentially with rank. Adjust rank/level display to reflect XP changes."
+"Implement rank decay: if a user misses a day without completing any main quests, deduct XP from their total. XP should never drop below 0. Implement progressive XP scaling:
+
+Less XP is awarded per quest initially, but higher ranks require more XP to level up.
+
+Use a formula that increases XP requirements exponentially as the player climbs ranks.
+Update rank/level display and prepare for future visual icons and animations."
 
 **Testing Checklist:**
 
@@ -98,11 +108,26 @@ Keep dark gradient background and readable fonts."
 * [ ] Rank and level update correctly after XP deduction.
 * [ ] XP cannot drop below 0.
 * [ ] Level-up requires progressively more XP as ranks increase.
-* [ ] Combo and streak are unaffected except for missed day streak logic.
+* [ ] Combo and streak behave correctly under the new system.
+* [ ] XP and rank changes are ready for animation/icon enhancements.
 
 ---
 
-## Step 7 — Optional: notifications / reminders
+## Step 7 — Visual feedback & animations
+
+**Agent Prompt:**
+"Add animations and visual cues for XP gain/loss, rank changes, streaks, and combo. Replace rank text with optional icons. Animate XP bar smoothly and trigger effects when ranking up or losing XP. Animate streak and combo when they change."
+
+**Testing Checklist:**
+
+* [ ] XP bar animates smoothly on quest completion or XP loss.
+* [ ] Rank-up shows icon and animation.
+* [ ] Daily streak and combo counters have visual animations when they update.
+* [ ] Effects do not break any functionality or localStorage persistence.
+
+---
+
+## Step 8 — Optional: notifications / reminders
 
 **Agent Prompt:**
 "Add optional browser notifications or in-app alerts for incomplete daily quests. Trigger when the user opens the app or at a scheduled time, with permission handling. Ensure it doesn’t interfere with XP/streak/combo calculations or rank decay."
@@ -113,6 +138,25 @@ Keep dark gradient background and readable fonts."
 * [ ] User is prompted for notification permission.
 * [ ] Notifications do not break XP, streak, combo, or rank decay logic.
 * [ ] Recurring quests and normal quest functionality remain unaffected.
+
+---
+
+## Step 9 — Future: multi-user accounts (later)
+
+**Agent Prompt:**
+"Prepare the app for future multi-user support:
+
+Refactor state management to allow multiple users to maintain their own quests, XP, streaks, and combos.
+
+Ensure localStorage or database structure can support multiple accounts.
+
+Leave placeholders for authentication and user switching."
+
+**Testing Checklist:**
+
+* [ ] App structure supports storing separate state per user.
+* [ ] No conflicts arise in the current single-user mode.
+* [ ] Future account functionality can be added without major refactoring.
 
 ---
 
