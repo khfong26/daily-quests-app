@@ -32,8 +32,8 @@ function App() {
     }));
   }, [quests, xp, streak, combo]);
 
-  function addQuest(name, type) {
-    setQuests([...quests, { name, type, done: false }]);
+  function addQuest(name, type, attribute) {
+    setQuests([...quests, { name, type, attribute, done: false }]);
   }
 
   function toggleQuest(index) {
@@ -107,7 +107,14 @@ function App() {
             key={i}
             className={`flex items-center justify-between p-3 mb-2 rounded-lg ${q.done ? "bg-green-700" : "bg-gray-800"}`}
           >
-            <span>{q.name} ({q.type})</span>
+            <div className="flex items-center">
+              {q.attribute && (
+                <span className={`attribute-tag ${q.attribute}`}>
+                  {q.attribute}
+                </span>
+              )}
+              <span>{q.name} ({q.type})</span>
+            </div>
             <button
               onClick={() => toggleQuest(i)}
               className="bg-blue-500 px-3 py-1 rounded hover:bg-blue-600"
@@ -130,12 +137,19 @@ function App() {
           <option value="main">Main</option>
           <option value="side">Side</option>
         </select>
+        <select id="questAttribute" className="p-2 rounded bg-gray-800">
+          <option value="physical">Physical</option>
+          <option value="mental">Mental</option>
+          <option value="career">Career</option>
+          <option value="studying">Studying</option>
+        </select>
         <button
           onClick={() => {
             const name = document.getElementById("questName").value.trim();
             const type = document.getElementById("questType").value;
+            const attribute = document.getElementById("questAttribute").value;
             if (name) {
-              addQuest(name, type);
+              addQuest(name, type, attribute);
               document.getElementById("questName").value = "";
             }
           }}
