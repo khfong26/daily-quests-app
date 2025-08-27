@@ -46,11 +46,23 @@ function QuestCard({ quest, index, isEditing, onToggle, onDelete, onEdit, onStar
                 <option value="career">Career</option>
                 <option value="studying">Studying</option>
               </select>
+              <select defaultValue={quest.recurring || "none"} className="p-2 rounded-lg bg-gray-700 border border-gray-600 focus:border-blue-400 focus:outline-none transition-colors" id={`editRecurring-${index}`}>
+                <option value="none">One-time</option>
+                <option value="daily">Daily</option>
+                <option value="weekly">Weekly</option>
+              </select>
             </div>
           ) : (
             <div className="flex-1">
               <h3 className="font-semibold text-lg">{quest.name}</h3>
-              <p className="text-sm text-gray-400">{quest.type} quest</p>
+              <p className="text-sm text-gray-400">
+                {quest.type} quest
+                {quest.recurring && quest.recurring !== "none" && (
+                  <span className="ml-2 px-2 py-1 bg-blue-600 text-xs rounded-full">
+                    {quest.recurring}
+                  </span>
+                )}
+              </p>
             </div>
           )}
         </div>
@@ -62,8 +74,9 @@ function QuestCard({ quest, index, isEditing, onToggle, onDelete, onEdit, onStar
                   const newName = document.getElementById(`editName-${index}`).value.trim();
                   const newType = document.getElementById(`editType-${index}`).value;
                   const newAttribute = document.getElementById(`editAttribute-${index}`).value;
+                  const newRecurring = document.getElementById(`editRecurring-${index}`).value;
                   if (newName) {
-                    onEdit(index, newName, newType, newAttribute);
+                    onEdit(index, newName, newType, newAttribute, newRecurring);
                   }
                   onCancelEdit();
                 }}
@@ -118,6 +131,7 @@ function App() {
   const [editingIndex, setEditingIndex] = useState(null);
   const [lastCompletedDate, setLastCompletedDate] = useState(null);
   const [dailyMainQuestCompleted, setDailyMainQuestCompleted] = useState(false);
+  const [lastResetDate, setLastResetDate] = useState(null);
 
   // Load saved data
   useEffect(() => {
@@ -129,6 +143,7 @@ function App() {
       setCombo(saved.combo || 1);
       setLastCompletedDate(saved.lastCompletedDate || null);
       setDailyMainQuestCompleted(saved.dailyMainQuestCompleted || false);
+      setLastResetDate(saved.lastResetDate || null);
     }
   }, []);
 
@@ -146,8 +161,8 @@ function App() {
     return lastCompletedDate !== today;
   }
 
-  function addQuest(name, type, attribute) {
-    setQuests([...quests, { name, type, attribute, done: false }]);
+  function addQuest(name, type, attribute, recurring = "none") {
+    setQuests([...quests, { name, type, attribute, recurring, done: false }]);
   }
 
   function toggleQuest(index) {
@@ -194,9 +209,9 @@ function App() {
     setQuests(updated);
   }
 
-  function editQuest(index, newName, newType, newAttribute) {
+  function editQuest(index, newName, newType, newAttribute, newRecurring) {
     const updated = [...quests];
-    updated[index] = { ...updated[index], name: newName, type: newType, attribute: newAttribute };
+    updated[index] = { ...updated[index], name: newName, type: newType, attribute: newAttribute, recurring: newRecurring };
     setQuests(updated);
   }
 
@@ -318,7 +333,7 @@ function App() {
       {/* Add Quest */}
       <div className="bg-gradient-to-br from-gray-800/80 to-gray-900/80 p-6 rounded-xl border border-gray-700">
         <h3 className="text-xl font-semibold mb-4">Add New Quest</h3>
-        <div className="grid gap-4 grid-cols-1 md:grid-cols-2 lg:grid-cols-5">
+        <div className="grid gap-4 grid-cols-1 md:grid-cols-2 lg:grid-cols-6">
           <input
             type="text"
             placeholder="Quest name"
@@ -335,13 +350,19 @@ function App() {
             <option value="career">Career</option>
             <option value="studying">Studying</option>
           </select>
+          <select id="questRecurring" className="p-3 rounded-lg bg-gray-700 border border-gray-600 focus:border-blue-400 focus:outline-none transition-colors">
+            <option value="none">One-time</option>
+            <option value="daily">Daily</option>
+            <option value="weekly">Weekly</option>
+          </select>
           <button
             onClick={() => {
               const name = document.getElementById("questName").value.trim();
               const type = document.getElementById("questType").value;
               const attribute = document.getElementById("questAttribute").value;
+              const recurring = document.getElementById("questRecurring").value;
               if (name) {
-                addQuest(name, type, attribute);
+                addQuest(name, type, attribute, recurring);
                 document.getElementById("questName").value = "";
               }
             }}
