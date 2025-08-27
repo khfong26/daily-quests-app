@@ -8,6 +8,92 @@ const ranks = [
 const levelsPerRank = 3;
 const xpPerLevel = 100;
 
+// QuestCard component
+function QuestCard({ quest, index, isEditing, onToggle, onDelete, onEdit, onStartEdit, onCancelEdit }) {
+  return (
+    <div
+      className={`flex items-center justify-between p-3 mb-2 rounded-lg ${quest.done ? "bg-green-700" : "bg-gray-800"}`}
+    >
+      <div className="flex items-center flex-1">
+        {quest.attribute && (
+          <span className={`attribute-tag ${quest.attribute}`}>
+            {quest.attribute}
+          </span>
+        )}
+        {isEditing ? (
+          <div className="flex gap-2 flex-1">
+            <input
+              type="text"
+              defaultValue={quest.name}
+              className="p-1 rounded bg-gray-700 text-white flex-1"
+              id={`editName-${index}`}
+            />
+            <select defaultValue={quest.type} className="p-1 rounded bg-gray-700" id={`editType-${index}`}>
+              <option value="main">Main</option>
+              <option value="side">Side</option>
+            </select>
+            <select defaultValue={quest.attribute} className="p-1 rounded bg-gray-700" id={`editAttribute-${index}`}>
+              <option value="physical">Physical</option>
+              <option value="mental">Mental</option>
+              <option value="career">Career</option>
+              <option value="studying">Studying</option>
+            </select>
+          </div>
+        ) : (
+          <span>{quest.name} ({quest.type})</span>
+        )}
+      </div>
+      <div className="flex gap-2">
+        {isEditing ? (
+          <>
+            <button
+              onClick={() => {
+                const newName = document.getElementById(`editName-${index}`).value.trim();
+                const newType = document.getElementById(`editType-${index}`).value;
+                const newAttribute = document.getElementById(`editAttribute-${index}`).value;
+                if (newName) {
+                  onEdit(index, newName, newType, newAttribute);
+                }
+                onCancelEdit();
+              }}
+              className="bg-green-500 px-2 py-1 rounded hover:bg-green-600 text-sm"
+            >
+              Save
+            </button>
+            <button
+              onClick={onCancelEdit}
+              className="bg-gray-500 px-2 py-1 rounded hover:bg-gray-600 text-sm"
+            >
+              Cancel
+            </button>
+          </>
+        ) : (
+          <>
+            <button
+              onClick={() => onStartEdit(index)}
+              className="bg-yellow-500 px-2 py-1 rounded hover:bg-yellow-600 text-sm"
+            >
+              Edit
+            </button>
+            <button
+              onClick={() => onDelete(index)}
+              className="bg-red-500 px-2 py-1 rounded hover:bg-red-600 text-sm"
+            >
+              Delete
+            </button>
+          </>
+        )}
+        <button
+          onClick={() => onToggle(index)}
+          className="bg-blue-500 px-3 py-1 rounded hover:bg-blue-600"
+        >
+          {quest.done ? "Undo" : "Done"}
+        </button>
+      </div>
+    </div>
+  );
+}
+
 function App() {
   const [quests, setQuests] = useState([]);
   const [xp, setXp] = useState(0);
@@ -70,6 +156,14 @@ function App() {
     setQuests(updated);
   }
 
+  function startEdit(index) {
+    setEditingIndex(index);
+  }
+
+  function cancelEdit() {
+    setEditingIndex(null);
+  }
+
   function resetDay() {
     setQuests(prev => prev.map(q => ({ ...q, done: false })));
     setCombo(1);
@@ -123,87 +217,17 @@ function App() {
       {/* Quest List */}
       <div>
         {quests.map((q, i) => (
-          <div
+          <QuestCard
             key={i}
-            className={`flex items-center justify-between p-3 mb-2 rounded-lg ${q.done ? "bg-green-700" : "bg-gray-800"}`}
-          >
-            <div className="flex items-center flex-1">
-              {q.attribute && (
-                <span className={`attribute-tag ${q.attribute}`}>
-                  {q.attribute}
-                </span>
-              )}
-              {editingIndex === i ? (
-                <div className="flex gap-2 flex-1">
-                  <input
-                    type="text"
-                    defaultValue={q.name}
-                    className="p-1 rounded bg-gray-700 text-white flex-1"
-                    id={`editName-${i}`}
-                  />
-                  <select defaultValue={q.type} className="p-1 rounded bg-gray-700" id={`editType-${i}`}>
-                    <option value="main">Main</option>
-                    <option value="side">Side</option>
-                  </select>
-                  <select defaultValue={q.attribute} className="p-1 rounded bg-gray-700" id={`editAttribute-${i}`}>
-                    <option value="physical">Physical</option>
-                    <option value="mental">Mental</option>
-                    <option value="career">Career</option>
-                    <option value="studying">Studying</option>
-                  </select>
-                </div>
-              ) : (
-                <span>{q.name} ({q.type})</span>
-              )}
-            </div>
-            <div className="flex gap-2">
-              {editingIndex === i ? (
-                <>
-                  <button
-                    onClick={() => {
-                      const newName = document.getElementById(`editName-${i}`).value.trim();
-                      const newType = document.getElementById(`editType-${i}`).value;
-                      const newAttribute = document.getElementById(`editAttribute-${i}`).value;
-                      if (newName) {
-                        editQuest(i, newName, newType, newAttribute);
-                      }
-                      setEditingIndex(null);
-                    }}
-                    className="bg-green-500 px-2 py-1 rounded hover:bg-green-600 text-sm"
-                  >
-                    Save
-                  </button>
-                  <button
-                    onClick={() => setEditingIndex(null)}
-                    className="bg-gray-500 px-2 py-1 rounded hover:bg-gray-600 text-sm"
-                  >
-                    Cancel
-                  </button>
-                </>
-              ) : (
-                <>
-                  <button
-                    onClick={() => setEditingIndex(i)}
-                    className="bg-yellow-500 px-2 py-1 rounded hover:bg-yellow-600 text-sm"
-                  >
-                    Edit
-                  </button>
-                  <button
-                    onClick={() => deleteQuest(i)}
-                    className="bg-red-500 px-2 py-1 rounded hover:bg-red-600 text-sm"
-                  >
-                    Delete
-                  </button>
-                </>
-              )}
-              <button
-                onClick={() => toggleQuest(i)}
-                className="bg-blue-500 px-3 py-1 rounded hover:bg-blue-600"
-              >
-                {q.done ? "Undo" : "Done"}
-              </button>
-            </div>
-          </div>
+            quest={q}
+            index={i}
+            isEditing={editingIndex === i}
+            onToggle={toggleQuest}
+            onDelete={deleteQuest}
+            onEdit={editQuest}
+            onStartEdit={startEdit}
+            onCancelEdit={cancelEdit}
+          />
         ))}
       </div>
 
