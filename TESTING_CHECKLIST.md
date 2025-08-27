@@ -23,10 +23,10 @@
 
 **Testing Checklist:**
 
-* [ ] Can you **edit the quest name/type/attribute** and see changes immediately?
-* [ ] Can you **delete a quest** and remove it from the list?
-* [ ] Does the deletion/update **persist in localStorage**?
-* [ ] Other quests remain unaffected when editing/deleting one.
+* [*] Can you **edit the quest name/type/attribute** and see changes immediately?
+* [*] Can you **delete a quest** and remove it from the list?
+* [*] Does the deletion/update **persist in localStorage**?
+* [*] Other quests remain unaffected when editing/deleting one.
 
 ---
 
