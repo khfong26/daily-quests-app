@@ -13,6 +13,7 @@ function App() {
   const [xp, setXp] = useState(0);
   const [streak, setStreak] = useState(0);
   const [combo, setCombo] = useState(1);
+  const [editingIndex, setEditingIndex] = useState(null);
 
   // Load saved data
   useEffect(() => {
@@ -45,8 +46,27 @@ function App() {
       setXp(prev => prev + gained);
       setCombo(prev => prev + 1);
       setStreak(prev => prev + 1);
+    } else {
+      // Remove XP when undoing a completed quest
+      let lost = updated[index].type === "main" ? 30 : 10;
+      lost *= combo;
+      setXp(prev => Math.max(0, prev - lost));
+      setCombo(prev => Math.max(1, prev - 1));
+      setStreak(prev => Math.max(0, prev - 1));
     }
     updated[index].done = !updated[index].done;
+    setQuests(updated);
+  }
+
+  function deleteQuest(index) {
+    const updated = [...quests];
+    updated.splice(index, 1);
+    setQuests(updated);
+  }
+
+  function editQuest(index, newName, newType, newAttribute) {
+    const updated = [...quests];
+    updated[index] = { ...updated[index], name: newName, type: newType, attribute: newAttribute };
     setQuests(updated);
   }
 
@@ -107,20 +127,82 @@ function App() {
             key={i}
             className={`flex items-center justify-between p-3 mb-2 rounded-lg ${q.done ? "bg-green-700" : "bg-gray-800"}`}
           >
-            <div className="flex items-center">
+            <div className="flex items-center flex-1">
               {q.attribute && (
                 <span className={`attribute-tag ${q.attribute}`}>
                   {q.attribute}
                 </span>
               )}
-              <span>{q.name} ({q.type})</span>
+              {editingIndex === i ? (
+                <div className="flex gap-2 flex-1">
+                  <input
+                    type="text"
+                    defaultValue={q.name}
+                    className="p-1 rounded bg-gray-700 text-white flex-1"
+                    id={`editName-${i}`}
+                  />
+                  <select defaultValue={q.type} className="p-1 rounded bg-gray-700" id={`editType-${i}`}>
+                    <option value="main">Main</option>
+                    <option value="side">Side</option>
+                  </select>
+                  <select defaultValue={q.attribute} className="p-1 rounded bg-gray-700" id={`editAttribute-${i}`}>
+                    <option value="physical">Physical</option>
+                    <option value="mental">Mental</option>
+                    <option value="career">Career</option>
+                    <option value="studying">Studying</option>
+                  </select>
+                </div>
+              ) : (
+                <span>{q.name} ({q.type})</span>
+              )}
             </div>
-            <button
-              onClick={() => toggleQuest(i)}
-              className="bg-blue-500 px-3 py-1 rounded hover:bg-blue-600"
-            >
-              {q.done ? "Undo" : "Done"}
-            </button>
+            <div className="flex gap-2">
+              {editingIndex === i ? (
+                <>
+                  <button
+                    onClick={() => {
+                      const newName = document.getElementById(`editName-${i}`).value.trim();
+                      const newType = document.getElementById(`editType-${i}`).value;
+                      const newAttribute = document.getElementById(`editAttribute-${i}`).value;
+                      if (newName) {
+                        editQuest(i, newName, newType, newAttribute);
+                      }
+                      setEditingIndex(null);
+                    }}
+                    className="bg-green-500 px-2 py-1 rounded hover:bg-green-600 text-sm"
+                  >
+                    Save
+                  </button>
+                  <button
+                    onClick={() => setEditingIndex(null)}
+                    className="bg-gray-500 px-2 py-1 rounded hover:bg-gray-600 text-sm"
+                  >
+                    Cancel
+                  </button>
+                </>
+              ) : (
+                <>
+                  <button
+                    onClick={() => setEditingIndex(i)}
+                    className="bg-yellow-500 px-2 py-1 rounded hover:bg-yellow-600 text-sm"
+                  >
+                    Edit
+                  </button>
+                  <button
+                    onClick={() => deleteQuest(i)}
+                    className="bg-red-500 px-2 py-1 rounded hover:bg-red-600 text-sm"
+                  >
+                    Delete
+                  </button>
+                </>
+              )}
+              <button
+                onClick={() => toggleQuest(i)}
+                className="bg-blue-500 px-3 py-1 rounded hover:bg-blue-600"
+              >
+                {q.done ? "Undo" : "Done"}
+              </button>
+            </div>
           </div>
         ))}
       </div>
