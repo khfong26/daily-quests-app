@@ -108,9 +108,11 @@ function App() {
             className={`flex items-center justify-between p-3 mb-2 rounded-lg ${q.done ? "bg-green-700" : "bg-gray-800"}`}
           >
             <div className="flex items-center">
-              <span className={`attribute-tag ${q.attribute}`}>
-                {q.attribute}
-              </span>
+              {q.attribute && (
+                <span className={`attribute-tag ${q.attribute}`}>
+                  {q.attribute}
+                </span>
+              )}
               <span>{q.name} ({q.type})</span>
             </div>
             <button
