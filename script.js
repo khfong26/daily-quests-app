@@ -7,10 +7,15 @@ const ranks = [
 ];
 const levelsPerRank = 3;
 
-// Progressive XP system - increases with rank
+// Progressive XP system - exponential scaling for later ranks
 function getXpPerLevel(rank) {
   const rankIndex = ranks.indexOf(rank);
-  return 100 + (rankIndex * 50); // 100, 150, 200, 250, 300, 350, 400
+  // Exponential scaling: early levels require less XP, later levels require exponentially more
+  // Formula: base * (multiplier ^ rankIndex)
+  const baseXP = 50;
+  const multiplier = 1.6;
+  return Math.round(baseXP * Math.pow(multiplier, rankIndex));
+  // Results: Iron=50, Bronze=80, Silver=128, Gold=205, Platinum=328, Diamond=525, Emerald=840
 }
 
 // QuestCard component
