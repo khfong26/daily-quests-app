@@ -126,6 +126,7 @@ function App() {
   const [editingIndex, setEditingIndex] = useState(null);
   const [lastCompletedDate, setLastCompletedDate] = useState(null);
   const [dailyMainQuestCompleted, setDailyMainQuestCompleted] = useState(false);
+  const [lastActiveDate, setLastActiveDate] = useState(null);
 
   // Load saved data
   useEffect(() => {
@@ -137,15 +138,30 @@ function App() {
       setCombo(saved.combo || 1);
       setLastCompletedDate(saved.lastCompletedDate || null);
       setDailyMainQuestCompleted(saved.dailyMainQuestCompleted || false);
+      setLastActiveDate(saved.lastActiveDate || null);
     }
   }, []);
 
   // Save on change
   useEffect(() => {
     localStorage.setItem("dailyQuestsApp", JSON.stringify({
-      quests, xp, streak, combo, lastCompletedDate, dailyMainQuestCompleted
+      quests, xp, streak, combo, lastCompletedDate, dailyMainQuestCompleted, lastActiveDate
     }));
-  }, [quests, xp, streak, combo, lastCompletedDate, dailyMainQuestCompleted]);
+  }, [quests, xp, streak, combo, lastCompletedDate, dailyMainQuestCompleted, lastActiveDate]);
+
+  // Check for new day on app load and update lastActiveDate
+  useEffect(() => {
+    const today = new Date().toDateString();
+    
+    if (lastActiveDate && lastActiveDate !== today) {
+      console.log("New day detected! Last active:", lastActiveDate, "Today:", today);
+    }
+    
+    // Always update lastActiveDate to today when app loads
+    if (lastActiveDate !== today) {
+      setLastActiveDate(today);
+    }
+  }, [lastActiveDate]); // Only depends on lastActiveDate to avoid infinite loops
 
   // Check if it's a new day
   function isNewDay() {
