@@ -71,11 +71,6 @@ Keep dark gradient background and readable fonts."
 
 ---
 
-## Step 5 — Recurring / daily quests with auto day tracking
-
-**Agent Prompt:**
-"Add optional recurring quests: allow users to mark a quest as daily or weekly. Replace the manual End Day button with automatic day tracking: on app load, detect if a new day has started. Reset only daily quests automatically, and weekly que---
-
 ## Step 5a — Add quest types (daily / weekly / normal)
 
 **Agent Prompt:**
@@ -83,9 +78,9 @@ Keep dark gradient background and readable fonts."
 
 **Testing Checklist:**
 
-* [ ] Can you set a quest as normal, daily, or weekly when creating it?
-* [ ] Quest type shows correctly in the UI.
-* [ ] Quest type persists in localStorage after refresh.
+* [*] Can you set a quest as normal, daily, or weekly when creating it?
+* [*] Quest type shows correctly in the UI.
+* [*] Quest type persists in localStorage after refresh.
 
 ---
 
@@ -96,23 +91,28 @@ Keep dark gradient background and readable fonts."
 
 **Testing Checklist:**
 
-* [ ] Last active date is saved in localStorage.
-* [ ] On refresh, if the day changed, a console message indicates 'new day detected'.
-* [ ] No quest or streak logic is changed yet.
+* [*] Last active date is saved in localStorage.
+* [*] On refresh, if the day changed, a console message indicates 'new day detected'.
+* [*] No quest or streak logic is changed yet.
 
 ---
 
 ## Step 5c — Reset daily quests on new day
 
 **Agent Prompt:**
-"Using the date tracking, automatically reset daily quests when a new day is detected. Weekly and normal quests should remain unchanged. Persist state in localStorage."
+"Implement reset behavior for recurring quests:
+
+Daily quests reset automatically when a new day begins.
+
+Weekly quests remain until completed manually.
+Remove the old 'End Day' button from the UI since automatic reset is now in place."
 
 **Testing Checklist:**
 
-* [ ] Daily quests reset automatically on new day.
-* [ ] Weekly quests are untouched.
-* [ ] Normal quests are untouched.
-* [ ] Daily reset persists correctly in localStorage.
+* [*] Daily quests reset automatically on new day.
+* [*] Weekly quests are untouched.
+* [*] Normal quests are untouched.
+* [*] Daily reset persists correctly in localStorage.
 
 ---
 
@@ -129,23 +129,23 @@ Combo resets at the start of each new day."
 
 **Testing Checklist:**
 
-* [ ] Streak increments correctly when daily quests were completed the previous day.
-* [ ] Streak does not increment if none were completed.
-* [ ] Combo works correctly within a day and resets at midnight/new day.
+* [*] Streak increments correctly when daily quests were completed the previous day.
+* [*] Streak does not increment if none were completed.
+* [*] Combo works correctly within a day and resets at midnight/new day.
 
 ---
 
 ## Step 5e — Persistence and cleanup
 
 **Agent Prompt:**
-"Ensure all new properties (quest type, lastActiveDate, streak, combo) are saved and restored correctly from localStorage. Refactor code so state persists across refresh without issues."
+"Ensure all new properties (quest type, lastActiveDate, streak, combo) are saved and restored correctly from localStorage. Also ensure that the daily streak resets to 0 if no main quests were completed the previous day. Refactor code so state persists across refresh without issues."
 
 **Testing Checklist:**
 
-* [ ] All quest types persist across refresh.
-* [ ] Last active date persists across refresh.
-* [ ] Streak and combo persist correctly.
-* [ ] No console errors.
+* [*] All quest types persist across refresh.
+* [*] Last active date persists across refresh.
+* [*] Streak and combo persist correctly.
+* [*] No console errors.
 
 ---
 
@@ -156,9 +156,9 @@ Combo resets at the start of each new day."
 
 **Testing Checklist:**
 
-* [ ] XP decreases if no main quests completed yesterday.
-* [ ] XP never drops below 0.
-* [ ] Decay event is logged.
+* [*] XP decreases if no main quests completed yesterday.
+* [*] XP never drops below 0.
+* [*] Decay event is logged.
 
 ---
 
@@ -199,6 +199,20 @@ Combo resets at the start of each new day."
 * [ ] Rank-up shows icon and animation.
 * [ ] Daily streak and combo counters have visual animations when they update.
 * [ ] Effects do not break any functionality or localStorage persistence.
+
+
+---
+
+## Step 7b — Improved Quest Editing UI
+
+**Agent Prompt:**
+"Improve the quest editing interface so that editing fields are compact and do not overflow the screen. Ensure edit boxes resize properly or stay within card boundaries, and avoid overlapping with other quests."
+
+**Testing Checklist:**
+
+* [ ] Editing a quest keeps the input box within the quest card.
+* [ ] Edit fields resize properly without running off-screen.
+* [ ] Other quests remain visible and unaffected during editing.
 
 ---
 
