@@ -206,6 +206,14 @@ function App() {
       } else {
         setStreak(0);
         console.log("Streak reset - no main quests completed yesterday");
+        
+        // Apply rank decay - deduct XP if no main quests were completed yesterday
+        const decayAmount = 25; // Fixed decay amount per day
+        setXp(prev => {
+          const newXp = Math.max(0, prev - decayAmount);
+          console.log(`🔻 Rank decay applied: -${decayAmount} XP (${prev} → ${newXp})`);
+          return newXp;
+        });
       }
       
       // Automatically reset daily quests on new day
