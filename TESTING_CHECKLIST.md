@@ -74,43 +74,118 @@ Keep dark gradient background and readable fonts."
 ## Step 5 — Recurring / daily quests with auto day tracking
 
 **Agent Prompt:**
-"Add optional recurring quests: allow users to mark a quest as daily or weekly. Replace the manual End Day button with automatic day tracking: on app load, detect if a new day has started. Reset only daily quests automatically, and weekly quests remain until completed manually. Update streak and combo logic:
+"Add optional recurring quests: allow users to mark a quest as daily or weekly. Replace the manual End Day button with automatic day tracking: on app load, detect if a new day has started. Reset only daily quests automatically, and weekly que---
 
-Daily streak increments only if at least one main quest was completed the previous day.
+## Step 5a — Add quest types (daily / weekly / normal)
 
-Combo counts consecutive quests completed within a day.
-Persist all state in localStorage."
+**Agent Prompt:**
+"Add a type property to quests: normal, daily, or weekly. Update the UI so users can select quest type when creating a new quest. Persist the quest type in localStorage. Do not change streak or combo logic yet."
 
 **Testing Checklist:**
 
-* [ ] Can you mark quests as daily or weekly?
-* [ ] Daily quests reset automatically when a new day begins.
-* [ ] Weekly quests remain until completed manually.
-* [ ] Daily streak increments correctly if at least one main quest is completed.
-* [ ] Combo resets at the start of each new day.
-* [ ] State persists correctly after refresh.
+* [ ] Can you set a quest as normal, daily, or weekly when creating it?
+* [ ] Quest type shows correctly in the UI.
+* [ ] Quest type persists in localStorage after refresh.
 
 ---
 
-## Step 6 — Rank decay / progressive XP scaling
+## Step 5b — Track the current date
 
 **Agent Prompt:**
-"Implement rank decay: if a user misses a day without completing any main quests, deduct XP from their total. XP should never drop below 0. Implement progressive XP scaling:
-
-Less XP is awarded per quest initially, but higher ranks require more XP to level up.
-
-Use a formula that increases XP requirements exponentially as the player climbs ranks.
-Update rank/level display and prepare for future visual icons and animations."
+"Implement automatic date tracking. Store the last active date in localStorage. On app load, detect if the date has changed since last session. Do not reset quests yet, just log to console when a new day is detected."
 
 **Testing Checklist:**
 
-* [ ] XP decreases if no main quests are completed in a day.
-* [ ] Rank and level update correctly after XP deduction.
-* [ ] XP cannot drop below 0.
-* [ ] Level-up requires progressively more XP as ranks increase.
-* [ ] Combo and streak behave correctly under the new system.
-* [ ] XP and rank changes are ready for animation/icon enhancements.
+* [ ] Last active date is saved in localStorage.
+* [ ] On refresh, if the day changed, a console message indicates 'new day detected'.
+* [ ] No quest or streak logic is changed yet.
 
+---
+
+## Step 5c — Reset daily quests on new day
+
+**Agent Prompt:**
+"Using the date tracking, automatically reset daily quests when a new day is detected. Weekly and normal quests should remain unchanged. Persist state in localStorage."
+
+**Testing Checklist:**
+
+* [ ] Daily quests reset automatically on new day.
+* [ ] Weekly quests are untouched.
+* [ ] Normal quests are untouched.
+* [ ] Daily reset persists correctly in localStorage.
+
+---
+
+## Step 5d — Update streak and combo logic
+
+**Agent Prompt:**
+"Update streak and combo logic to work with automatic day tracking:
+
+Daily streak increments only if at least one main quest was completed the previous day.
+
+Combo counts consecutive quests completed within a single day.
+
+Combo resets at the start of each new day."
+
+**Testing Checklist:**
+
+* [ ] Streak increments correctly when daily quests were completed the previous day.
+* [ ] Streak does not increment if none were completed.
+* [ ] Combo works correctly within a day and resets at midnight/new day.
+
+---
+
+## Step 5e — Persistence and cleanup
+
+**Agent Prompt:**
+"Ensure all new properties (quest type, lastActiveDate, streak, combo) are saved and restored correctly from localStorage. Refactor code so state persists across refresh without issues."
+
+**Testing Checklist:**
+
+* [ ] All quest types persist across refresh.
+* [ ] Last active date persists across refresh.
+* [ ] Streak and combo persist correctly.
+* [ ] No console errors.
+
+---
+
+## Step 6a — Rank decay (XP loss if no quests done)
+
+**Agent Prompt:**
+"Add rank decay: if no main quests were completed yesterday, deduct XP on the next app load. XP should never drop below 0. Log decay events in console for debugging."
+
+**Testing Checklist:**
+
+* [ ] XP decreases if no main quests completed yesterday.
+* [ ] XP never drops below 0.
+* [ ] Decay event is logged.
+
+---
+
+## Step 6b — Progressive XP scaling
+
+**Agent Prompt:**
+"Implement progressive XP scaling. Early levels require small XP, later levels require exponentially more. Store current XP and level in localStorage. Update rank/level display accordingly."
+
+**Testing Checklist:**
+
+* [ ] Early levels take less XP.
+* [ ] Later levels take more XP.
+* [ ] Level-up works as expected.
+* [ ] State persists across refresh.
+
+---
+
+## Step 6c — Integrate XP decay with scaling
+
+**Agent Prompt:**
+"Combine XP decay and progressive scaling into a single rank system. Ensure XP loss and XP gain both use the same scaling formula. Prepare for future animations/icons but do not implement them yet."
+
+**Testing Checklist:**
+
+* [ ] XP gain and loss both respect scaling.
+* [ ] Levels and XP display correctly.
+* [ ] Rank system is stable across refresh.
 ---
 
 ## Step 7 — Visual feedback & animations
