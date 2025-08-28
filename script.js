@@ -127,33 +127,73 @@ function App() {
   const [lastCompletedDate, setLastCompletedDate] = useState(null);
   const [dailyMainQuestCompleted, setDailyMainQuestCompleted] = useState(false);
   const [lastActiveDate, setLastActiveDate] = useState(null);
+  const [isLoaded, setIsLoaded] = useState(false);
 
   // Load saved data
   useEffect(() => {
-    const saved = JSON.parse(localStorage.getItem("dailyQuestsApp"));
-    if (saved) {
-      setQuests(saved.quests || []);
-      setXp(saved.xp || 0);
-      setStreak(saved.streak || 0);
-      setCombo(saved.combo || 1);
-      setLastCompletedDate(saved.lastCompletedDate || null);
-      setDailyMainQuestCompleted(saved.dailyMainQuestCompleted || false);
-      setLastActiveDate(saved.lastActiveDate || null);
+    try {
+      const savedData = localStorage.getItem("dailyQuestsApp");
+      if (savedData) {
+        const saved = JSON.parse(savedData);
+        console.log("Loading saved data:", saved);
+        
+        setQuests(saved.quests || []);
+        setXp(saved.xp || 0);
+        setStreak(saved.streak || 0);
+        setCombo(saved.combo || 1);
+        setLastCompletedDate(saved.lastCompletedDate || null);
+        setDailyMainQuestCompleted(saved.dailyMainQuestCompleted || false);
+        setLastActiveDate(saved.lastActiveDate || null);
+      } else {
+        console.log("No saved data found, using defaults");
+      }
+    } catch (error) {
+      console.error("Error loading saved data:", error);
+    } finally {
+      setIsLoaded(true);
     }
   }, []);
 
-  // Save on change
+  // Save on change (only after initial load to prevent overwriting during load)
   useEffect(() => {
-    localStorage.setItem("dailyQuestsApp", JSON.stringify({
-      quests, xp, streak, combo, lastCompletedDate, dailyMainQuestCompleted, lastActiveDate
-    }));
-  }, [quests, xp, streak, combo, lastCompletedDate, dailyMainQuestCompleted, lastActiveDate]);
+    if (!isLoaded) return;
+    
+    try {
+      const dataToSave = {
+        quests, 
+        xp, 
+        streak, 
+        combo, 
+        lastCompletedDate, 
+        dailyMainQuestCompleted, 
+        lastActiveDate
+      };
+      localStorage.setItem("dailyQuestsApp", JSON.stringify(dataToSave));
+      console.log("Data saved to localStorage:", dataToSave);
+    } catch (error) {
+      console.error("Error saving data to localStorage:", error);
+    }
+  }, [quests, xp, streak, combo, lastCompletedDate, dailyMainQuestCompleted, lastActiveDate, isLoaded]);
 
   // Check for new day on app load and update lastActiveDate
   useEffect(() => {
+    if (!isLoaded) return;
+    
     const today = new Date().toDateString();
     
-    if (lastActiveDate && lastActiveDate !== today) {
+    // Always update lastActiveDate to today when app loads
+    if (lastActiveDate !== today) {
+      setLastActiveDate(today);
+    }
+  }, [lastActiveDate, isLoaded]);
+
+  // Handle new day detection and quest reset (runs when lastActiveDate changes and data is loaded)
+  useEffect(() => {
+    if (!isLoaded || !lastActiveDate) return;
+    
+    const today = new Date().toDateString();
+    
+    if (lastActiveDate !== today) {
       console.log("New day detected! Last active:", lastActiveDate, "Today:", today);
       
       // Check if any main quests were completed the previous day for streak calculation
@@ -182,12 +222,7 @@ function App() {
       
       console.log("Daily quests have been automatically reset for the new day");
     }
-    
-    // Always update lastActiveDate to today when app loads
-    if (lastActiveDate !== today) {
-      setLastActiveDate(today);
-    }
-  }, [lastActiveDate, quests]); // Added quests dependency to check completed status
+  }, [lastActiveDate, quests, isLoaded]);
 
   // Check if it's a new day
   function isNewDay() {
@@ -197,7 +232,15 @@ function App() {
   }
 
   function addQuest(name, type, attribute, frequency) {
-    setQuests([...quests, { name, type, attribute, frequency, done: false }]);
+    const newQuest = { 
+      name, 
+      type, 
+      attribute, 
+      frequency: frequency || 'normal', 
+      done: false 
+    };
+    console.log("Adding new quest:", newQuest);
+    setQuests([...quests, newQuest]);
   }
 
   function toggleQuest(index) {
@@ -243,7 +286,15 @@ function App() {
 
   function editQuest(index, newName, newType, newAttribute, newFrequency) {
     const updated = [...quests];
-    updated[index] = { ...updated[index], name: newName, type: newType, attribute: newAttribute, frequency: newFrequency };
+    // Ensure all properties are preserved when editing
+    updated[index] = { 
+      ...updated[index], 
+      name: newName, 
+      type: newType, 
+      attribute: newAttribute, 
+      frequency: newFrequency || 'normal'
+    };
+    console.log("Quest edited:", updated[index]);
     setQuests(updated);
   }
 
