@@ -155,6 +155,20 @@ function App() {
     
     if (lastActiveDate && lastActiveDate !== today) {
       console.log("New day detected! Last active:", lastActiveDate, "Today:", today);
+      
+      // Automatically reset daily quests on new day
+      setQuests(prev => prev.map(q => {
+        if (q.frequency === 'daily') {
+          return { ...q, done: false };
+        }
+        return q; // Keep weekly and normal quests unchanged
+      }));
+      
+      // Reset combo and daily main quest tracking for the new day
+      setCombo(1);
+      setDailyMainQuestCompleted(false);
+      
+      console.log("Daily quests have been automatically reset for the new day");
     }
     
     // Always update lastActiveDate to today when app loads
@@ -230,13 +244,6 @@ function App() {
 
   function cancelEdit() {
     setEditingIndex(null);
-  }
-
-  function resetDay() {
-    setQuests(prev => prev.map(q => ({ ...q, done: false })));
-    setCombo(1);
-    setDailyMainQuestCompleted(false);
-    // Note: streak is not reset here - it should only decrease if no main quests completed
   }
 
   function getRankInfo() {
@@ -380,16 +387,6 @@ function App() {
             Add Quest
           </button>
         </div>
-      </div>
-
-      {/* End of Day */}
-      <div className="mt-8 text-center">
-        <button
-          onClick={resetDay}
-          className="bg-gradient-to-r from-red-500 to-pink-500 px-6 py-3 rounded-lg hover:from-red-600 hover:to-pink-600 font-medium transition-all transform hover:scale-105"
-        >
-          End Day (Reset Quests)
-        </button>
       </div>
     </div>
   );
