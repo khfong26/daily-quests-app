@@ -156,6 +156,18 @@ function App() {
     if (lastActiveDate && lastActiveDate !== today) {
       console.log("New day detected! Last active:", lastActiveDate, "Today:", today);
       
+      // Check if any main quests were completed the previous day for streak calculation
+      // This must be done BEFORE resetting daily quests
+      const hadMainQuestCompletedYesterday = quests.some(q => q.type === "main" && q.done);
+      
+      if (hadMainQuestCompletedYesterday) {
+        setStreak(prev => prev + 1);
+        console.log("Streak incremented - main quests were completed yesterday");
+      } else {
+        setStreak(0);
+        console.log("Streak reset - no main quests completed yesterday");
+      }
+      
       // Automatically reset daily quests on new day
       setQuests(prev => prev.map(q => {
         if (q.frequency === 'daily') {
@@ -175,7 +187,7 @@ function App() {
     if (lastActiveDate !== today) {
       setLastActiveDate(today);
     }
-  }, [lastActiveDate]); // Only depends on lastActiveDate to avoid infinite loops
+  }, [lastActiveDate, quests]); // Added quests dependency to check completed status
 
   // Check if it's a new day
   function isNewDay() {
@@ -199,13 +211,10 @@ function App() {
       setXp(prev => prev + gained);
       setCombo(prev => prev + 1);
       
-      // Handle streak logic - only increment once per day for main quest completion
-      if (updated[index].type === "main" && !dailyMainQuestCompleted) {
-        if (isNewDay()) {
-          setStreak(prev => prev + 1);
-          setLastCompletedDate(today);
-          setDailyMainQuestCompleted(true);
-        }
+      // Track if a main quest was completed today (for streak logic)
+      if (updated[index].type === "main") {
+        setDailyMainQuestCompleted(true);
+        setLastCompletedDate(today);
       }
     } else {
       // Remove XP when undoing a completed quest
