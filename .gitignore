@@ -3,3 +3,6 @@ test.html
 test_persistence.js
 comprehensive_test.js
 manual_verification.js
+test_rank_decay.js
+test_integration_decay.js
+manual_test.html
