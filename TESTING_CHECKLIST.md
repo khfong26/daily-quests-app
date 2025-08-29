@@ -219,36 +219,63 @@ Improve the quest editing interface so that editing fields are compact and do no
 
 ---
 
-## Step 8 — Optional: notifications / reminders
+## Step 8 — Polish and UI Improvements
 
 **Agent Prompt:**
-"Add optional browser notifications or in-app alerts for incomplete daily quests. Trigger when the user opens the app or at a scheduled time, with permission handling. Ensure it doesn’t interfere with XP/streak/combo calculations or rank decay."
+"Rename the 'Combo' label to 'Tasks Completed Today' and update related UI references. Improve rank icons by using a consistent visual style (such as a unified icon set or styled emojis) and ensure each rank tier has a distinct icon. Add validation to prevent creating duplicate quests by checking for an existing quest with the same name before adding or saving."
 
 **Testing Checklist:**
 
-* [ ] Notifications trigger correctly for incomplete daily quests.
-* [ ] User is prompted for notification permission.
-* [ ] Notifications do not break XP, streak, combo, or rank decay logic.
-* [ ] Recurring quests and normal quest functionality remain unaffected.
+* [ ] "Combo" is consistently renamed to "Tasks Completed Today."
+* [ ] Rank icons use a consistent, visually appealing style.
+* [ ] Each rank tier has a distinct, recognizable icon.
+* [ ] Duplicate quest names are blocked, with a clear error message.
+* [ ] Editing and saving quests works normally with validation applied.
 
 ---
 
-## Step 9 — Future: multi-user accounts (later)
+## Step 9 — Accounts & Authentication (Phase 1)
 
 **Agent Prompt:**
-"Prepare the app for future multi-user support:
-
-Refactor state management to allow multiple users to maintain their own quests, XP, streaks, and combos.
-
-Ensure localStorage or database structure can support multiple accounts.
-
-Leave placeholders for authentication and user switching."
+"Introduce basic user accounts with login and logout. Store each user’s quests, streak, XP, and rank separately. Use localStorage keyed by username to persist progress, and add a login screen before showing quests. Allow switching between users."
 
 **Testing Checklist:**
 
-* [ ] App structure supports storing separate state per user.
-* [ ] No conflicts arise in the current single-user mode.
-* [ ] Future account functionality can be added without major refactoring.
+* [ ] Users can create accounts with username + password.
+* [ ] Quests, streak, XP, and rank are stored per user.
+* [ ] Data persists across app reloads via localStorage.
+* [ ] Switching users shows the correct data.
+* [ ] Logging out returns to the login screen.
+
+---
+
+## Step 10 — Accounts & Persistence (Phase 2)
+
+**Agent Prompt:**
+"Connect account data to a persistent database (SQLite locally, or Supabase/Firebase when deployed). Ensure all quests, streaks, XP, and rank progress are tied to a user account. Add the ability to delete accounts or reset progress."
+
+**Testing Checklist:**
+
+* [ ] User data is stored in a database instead of localStorage.
+* [ ] Logging in retrieves the correct quests, streak, XP, and rank.
+* [ ] Progress persists across devices (if deployed).
+* [ ] Users can delete their account and reset data.
+* [ ] No data leaks between accounts.
+
+---
+
+## Step 11 — Advanced UI & Progression
+
+**Agent Prompt:**
+"Enhance the progression system and user interface. Add clear rank tiers with visually distinct badges (e.g., Bronze/Silver/Gold). Improve the XP bar with animated fill transitions. Create a profile page summarizing streak, rank, XP progress, and tasks completed today in one view."
+
+**Testing Checklist:**
+
+* [ ] Rank tiers are visually distinct with badges or styled icons.
+* [ ] XP bar animates smoothly when gaining XP.
+* [ ] Profile page shows streak, rank, XP, and daily tasks clearly.
+* [ ] Progression UI updates correctly as tasks are completed.
+* [ ] No UI overlap or layout issues occur.
 
 ---
 
