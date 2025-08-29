@@ -8,15 +8,14 @@ const ranks = [
 ];
 const levelsPerRank = 3;
 
-// Progressive XP system - exponential scaling for later ranks
+// Quadratic XP progression system - XP required = 100 * (rank ^ 2)
 function getXpPerLevel(rank) {
   const rankIndex = ranks.indexOf(rank);
-  // Exponential scaling: early levels require less XP, later levels require exponentially more
-  // Formula: base * (multiplier ^ rankIndex)
-  const baseXP = 50;
-  const multiplier = 1.6;
-  return Math.round(baseXP * Math.pow(multiplier, rankIndex));
-  // Results: Iron=50, Bronze=80, Silver=128, Gold=205, Platinum=328, Diamond=525, Emerald=840
+  // Quadratic scaling: XP required = 100 * (rank ^ 2)
+  // Adding 1 to rankIndex since we want rank 1, 2, 3, etc. not 0, 1, 2
+  const rankNumber = rankIndex + 1;
+  return 100 * Math.pow(rankNumber, 2);
+  // Results: Iron=100, Bronze=400, Silver=900, Gold=1600, Platinum=2500, Diamond=3600, Emerald=4900
 }
 
 function getRankInfo(xp) {
@@ -46,50 +45,61 @@ function getRankInfo(xp) {
   };
 }
 
-console.log("=== Progressive XP Scaling - Comprehensive Test ===\n");
+console.log("=== Quadratic XP Scaling - Comprehensive Test ===\n");
 
 // Testing Checklist Validation:
-// * [ ] Early levels take less XP.
-// * [ ] Later levels take more XP.
-// * [ ] Level-up works as expected.
-// * [ ] State persists across refresh.
+// * [x] Quadratic progression follows 100 * rank^2 formula.
+// * [x] XP increases follow quadratic growth pattern.
+// * [x] Level-up works as expected.
+// * [x] State persists across refresh.
 
-console.log("1. TESTING: Early levels take less XP");
+console.log("1. TESTING: Quadratic progression validation");
 console.log("==========================================");
-const earlyRanks = ["Iron", "Bronze", "Silver"];
-const oldLinearFormula = (rank) => 100 + (ranks.indexOf(rank) * 50);
-
-earlyRanks.forEach(rank => {
-  const newXP = getXpPerLevel(rank);
-  const oldXP = oldLinearFormula(rank);
-  const reduction = oldXP - newXP;
-  console.log(`${rank}: ${newXP} XP (was ${oldXP}, reduced by ${reduction})`);
+console.log("XP required per rank (should follow quadratic formula 100 * rank^2):");
+ranks.forEach((rank, index) => {
+  const actualXP = getXpPerLevel(rank);
+  const expectedXP = 100 * Math.pow(index + 1, 2);
+  const isCorrect = actualXP === expectedXP;
+  console.log(`${rank}: ${actualXP} XP (expected ${expectedXP}) ${isCorrect ? '✅' : '❌'}`);
 });
-const earlyTestPassed = earlyRanks.every(rank => getXpPerLevel(rank) < oldLinearFormula(rank));
-console.log(`✅ Test 1 Result: ${earlyTestPassed ? 'PASS' : 'FAIL'} - Early levels require less XP\n`);
+const quadraticTestPassed = ranks.every((rank, index) => {
+  const actualXP = getXpPerLevel(rank);
+  const expectedXP = 100 * Math.pow(index + 1, 2);
+  return actualXP === expectedXP;
+});
+console.log(`✅ Test 1 Result: ${quadraticTestPassed ? 'PASS' : 'FAIL'} - Quadratic progression is correct\n`);
 
-console.log("2. TESTING: Later levels take more XP");
+console.log("2. TESTING: XP increases are quadratic");
 console.log("=====================================");
-const laterRanks = ["Platinum", "Diamond", "Emerald"];
-laterRanks.forEach(rank => {
-  const newXP = getXpPerLevel(rank);
-  const oldXP = oldLinearFormula(rank);
-  const increase = newXP - oldXP;
-  console.log(`${rank}: ${newXP} XP (was ${oldXP}, increased by ${increase})`);
-});
-const laterTestPassed = laterRanks.every(rank => getXpPerLevel(rank) > oldLinearFormula(rank));
-console.log(`✅ Test 2 Result: ${laterTestPassed ? 'PASS' : 'FAIL'} - Later levels require more XP\n`);
+console.log("XP increases between ranks (should follow quadratic growth):");
+const increases = [];
+for (let i = 1; i < ranks.length; i++) {
+  const prevXP = getXpPerLevel(ranks[i-1]);
+  const currXP = getXpPerLevel(ranks[i]);
+  const increase = currXP - prevXP;
+  increases.push(increase);
+  console.log(`${ranks[i-1]} → ${ranks[i]}: +${increase} XP`);
+}
+// Verify increases are growing (quadratic growth means differences increase)
+let isQuadraticGrowth = true;
+for (let i = 1; i < increases.length; i++) {
+  if (increases[i] <= increases[i-1]) {
+    isQuadraticGrowth = false;
+    break;
+  }
+}
+console.log(`✅ Test 2 Result: ${isQuadraticGrowth ? 'PASS' : 'FAIL'} - XP increases follow quadratic growth\n`);
 
 console.log("3. TESTING: Level-up works as expected");
 console.log("======================================");
 const levelUpTests = [
   { xp: 0, expected: { rank: "Iron", level: 1 } },
   { xp: 25, expected: { rank: "Iron", level: 1 } }, // Partial progress
-  { xp: 50, expected: { rank: "Iron", level: 2 } }, // First level up
-  { xp: 100, expected: { rank: "Iron", level: 3 } }, // Second level up
-  { xp: 150, expected: { rank: "Bronze", level: 1 } }, // Rank up
-  { xp: 390, expected: { rank: "Silver", level: 1 } }, // Another rank up
-  { xp: 2373, expected: { rank: "Diamond", level: 1 } }, // High level
+  { xp: 100, expected: { rank: "Iron", level: 2 } }, // First level up
+  { xp: 200, expected: { rank: "Iron", level: 3 } }, // Second level up
+  { xp: 300, expected: { rank: "Bronze", level: 1 } }, // Rank up to Bronze
+  { xp: 1500, expected: { rank: "Silver", level: 1 } }, // Rank up to Silver
+  { xp: 9000, expected: { rank: "Platinum", level: 1 } }, // High level Platinum
 ];
 
 let levelUpTestsPassed = 0;
@@ -112,9 +122,9 @@ const mockLocalStorage = {
 };
 
 const persistenceTests = [
-  { xp: 100, rank: "Iron", level: 3 },
-  { xp: 390, rank: "Silver", level: 1 },
-  { xp: 1389, rank: "Platinum", level: 1 }
+  { xp: 200, rank: "Iron", level: 3 },
+  { xp: 1500, rank: "Silver", level: 1 },
+  { xp: 16500, rank: "Diamond", level: 1 }
 ];
 
 let persistenceTestsPassed = 0;
@@ -133,48 +143,26 @@ persistenceTests.forEach((test, index) => {
 });
 console.log(`✅ Test 4 Result: ${persistenceTestsPassed === persistenceTests.length ? 'PASS' : 'FAIL'} - State persists correctly (${persistenceTestsPassed}/${persistenceTests.length})\n`);
 
-console.log("5. ADDITIONAL VALIDATION: Exponential scaling");
+console.log("5. ADDITIONAL VALIDATION: Quadratic scaling");
 console.log("=============================================");
-console.log("XP increases between ranks (should be exponential):");
-const increases = [];
-for (let i = 1; i < ranks.length; i++) {
-  const prevXP = getXpPerLevel(ranks[i-1]);
-  const currXP = getXpPerLevel(ranks[i]);
-  const increase = currXP - prevXP;
-  increases.push(increase);
-  console.log(`${ranks[i-1]} → ${ranks[i]}: +${increase} XP`);
-}
-
-// Verify each increase is larger than the previous (exponential)
-let isExponential = true;
-for (let i = 1; i < increases.length; i++) {
-  if (increases[i] <= increases[i-1]) {
-    isExponential = false;
-    break;
-  }
-}
-console.log(`✅ Exponential scaling verified: ${isExponential ? 'PASS' : 'FAIL'}\n`);
-
-console.log("6. SUMMARY: Total XP required for each rank");
-console.log("===========================================");
+console.log("Total XP required for each rank (should follow quadratic pattern):");
 let totalXP = 0;
 ranks.forEach((rank, index) => {
   const xpForRank = getXpPerLevel(rank) * levelsPerRank;
   totalXP += xpForRank;
   console.log(`${rank} Level 3: ${totalXP} total XP (${getXpPerLevel(rank)} per level)`);
 });
+console.log(`✅ Quadratic scaling verified: ${isQuadraticGrowth ? 'PASS' : 'FAIL'}\n`);
 
 console.log("\n=== FINAL RESULTS ===");
-const allTestsPassed = earlyTestPassed && laterTestPassed && 
+const allTestsPassed = quadraticTestPassed && isQuadraticGrowth && 
                       (levelUpTestsPassed === levelUpTests.length) && 
-                      (persistenceTestsPassed === persistenceTests.length) && 
-                      isExponential;
+                      (persistenceTestsPassed === persistenceTests.length);
 
-console.log(`✅ Early levels take less XP: ${earlyTestPassed ? 'PASS' : 'FAIL'}`);
-console.log(`✅ Later levels take more XP: ${laterTestPassed ? 'PASS' : 'FAIL'}`);
+console.log(`✅ Quadratic progression correct: ${quadraticTestPassed ? 'PASS' : 'FAIL'}`);
+console.log(`✅ XP increases follow quadratic growth: ${isQuadraticGrowth ? 'PASS' : 'FAIL'}`);
 console.log(`✅ Level-up works as expected: ${levelUpTestsPassed === levelUpTests.length ? 'PASS' : 'FAIL'}`);
 console.log(`✅ State persists across refresh: ${persistenceTestsPassed === persistenceTests.length ? 'PASS' : 'FAIL'}`);
-console.log(`✅ Exponential scaling verified: ${isExponential ? 'PASS' : 'FAIL'}`);
 
 console.log(`\n🎉 OVERALL RESULT: ${allTestsPassed ? 'ALL TESTS PASSED' : 'SOME TESTS FAILED'}`);
-console.log("Progressive XP scaling implementation is complete and working correctly!");
+console.log("Quadratic XP scaling implementation is complete and working correctly!");

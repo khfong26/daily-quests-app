@@ -10,11 +10,20 @@ body {
 
 .quest-card {
   transition: all 0.3s ease;
+  min-width: 0; /* Prevent flex items from overflowing */
+  word-wrap: break-word;
 }
 
 .quest-card:hover {
   transform: translateY(-2px);
   box-shadow: 0 10px 20px rgba(0, 0, 0, 0.3);
+}
+
+/* Compact editing mode */
+.quest-card input,
+.quest-card select {
+  min-width: 0;
+  max-width: 100%;
 }
 
 .attribute-bar {
@@ -99,9 +108,8 @@ body {
   }
 }
 
-/* Rank up celebration */
-.rank-up-celebration {
-  animation: rankUpCelebration 3s ease-out forwards;
+/* Rank change celebration */
+.rank-change-celebration {
   position: fixed;
   top: 50%;
   left: 50%;
@@ -109,6 +117,14 @@ body {
   z-index: 2000;
   pointer-events: none;
   text-align: center;
+}
+
+.rank-change-celebration.rank-up {
+  animation: rankUpCelebration 3s ease-out forwards;
+}
+
+.rank-change-celebration.rank-down {
+  animation: rankDownCelebration 3s ease-out forwards;
 }
 
 @keyframes rankUpCelebration {
@@ -127,6 +143,25 @@ body {
   100% {
     opacity: 0;
     transform: translate(-50%, -50%) scale(0.8);
+  }
+}
+
+@keyframes rankDownCelebration {
+  0% {
+    opacity: 0;
+    transform: translate(-50%, -50%) scale(0.5) rotate(0deg);
+  }
+  20% {
+    opacity: 1;
+    transform: translate(-50%, -50%) scale(1.2) rotate(-5deg);
+  }
+  80% {
+    opacity: 1;
+    transform: translate(-50%, -50%) scale(1) rotate(0deg);
+  }
+  100% {
+    opacity: 0;
+    transform: translate(-50%, -50%) scale(0.8) rotate(5deg);
   }
 }
 
