@@ -7,14 +7,14 @@ const ranks = [
 ];
 const levelsPerRank = 3;
 
-// Rank icons mapping
+// Rank icons mapping - Consistent progression from basic to elite
 const rankIcons = {
-  "Iron": "⚙️",
+  "Iron": "🔩",
   "Bronze": "🥉", 
   "Silver": "🥈",
   "Gold": "🥇",
-  "Platinum": "💎",
-  "Diamond": "💍", 
+  "Platinum": "⭐",
+  "Diamond": "💎", 
   "Emerald": "👑"
 };
 
@@ -134,9 +134,13 @@ function QuestCard({ quest, index, isEditing, onToggle, onDelete, onEdit, onStar
                   const newAttribute = document.getElementById(`editAttribute-${index}`).value;
                   const newFrequency = document.getElementById(`editFrequency-${index}`).value;
                   if (newName) {
-                    onEdit(index, newName, newType, newAttribute, newFrequency);
+                    const success = onEdit(index, newName, newType, newAttribute, newFrequency);
+                    if (success) {
+                      onCancelEdit();
+                    }
+                  } else {
+                    onCancelEdit();
                   }
-                  onCancelEdit();
                 }}
                 className="bg-green-500 px-2 py-1 rounded-lg hover:bg-green-600 text-xs font-medium transition-colors"
               >
@@ -364,8 +368,19 @@ function App() {
   }
 
   function addQuest(name, type, attribute, frequency) {
+    // Check for duplicate quest names (case-insensitive)
+    const trimmedName = name.trim();
+    const existingQuest = quests.find(quest => 
+      quest.name.toLowerCase() === trimmedName.toLowerCase()
+    );
+    
+    if (existingQuest) {
+      alert(`A quest named "${trimmedName}" already exists. Please choose a different name.`);
+      return false;
+    }
+    
     const newQuest = { 
-      name, 
+      name: trimmedName, 
       type, 
       attribute, 
       frequency: frequency || 'normal', 
@@ -373,6 +388,7 @@ function App() {
     };
     console.log("Adding new quest:", newQuest);
     setQuests([...quests, newQuest]);
+    return true;
   }
 
   function toggleQuest(index) {
@@ -462,17 +478,29 @@ function App() {
   }
 
   function editQuest(index, newName, newType, newAttribute, newFrequency) {
+    // Check for duplicate quest names when editing (case-insensitive, excluding current quest)
+    const trimmedName = newName.trim();
+    const existingQuest = quests.find((quest, i) => 
+      i !== index && quest.name.toLowerCase() === trimmedName.toLowerCase()
+    );
+    
+    if (existingQuest) {
+      alert(`A quest named "${trimmedName}" already exists. Please choose a different name.`);
+      return false;
+    }
+    
     const updated = [...quests];
     // Ensure all properties are preserved when editing
     updated[index] = { 
       ...updated[index], 
-      name: newName, 
+      name: trimmedName, 
       type: newType, 
       attribute: newAttribute, 
       frequency: newFrequency || 'normal'
     };
     console.log("Quest edited:", updated[index]);
     setQuests(updated);
+    return true;
   }
 
   function startEdit(index) {
@@ -521,7 +549,7 @@ function App() {
           </p>
         </div>
         <div className="bg-gradient-to-br from-gray-800/80 to-gray-900/80 p-6 rounded-xl border border-gray-700 text-center">
-          <p className="text-sm text-gray-400 mb-2">Combo</p>
+          <p className="text-sm text-gray-400 mb-2">Tasks Completed Today</p>
           <p className={`text-2xl font-bold transition-all duration-300 ${
             combo > 1 ? 'text-green-400 transform scale-110' : 'text-white'
           } ${comboAnimation ? 'combo-boost' : ''}`}>
@@ -604,8 +632,10 @@ function App() {
               const attribute = document.getElementById("questAttribute").value;
               const frequency = document.getElementById("questFrequency").value;
               if (name) {
-                addQuest(name, type, attribute, frequency);
-                document.getElementById("questName").value = "";
+                const success = addQuest(name, type, attribute, frequency);
+                if (success) {
+                  document.getElementById("questName").value = "";
+                }
               }
             }}
             className="bg-gradient-to-r from-green-500 to-blue-500 px-6 py-3 rounded-lg hover:from-green-600 hover:to-blue-600 font-medium transition-all transform hover:scale-105"
