@@ -18,6 +18,52 @@ function getXpPerLevel(rank) {
   // Results: Iron=50, Bronze=80, Silver=128, Gold=205, Platinum=328, Diamond=525, Emerald=840
 }
 
+// Calculate scaled XP amounts based on current rank for both gains and losses
+function getScaledXpAmount(currentXp, questType, isGain = true) {
+  // Get current rank info to determine scaling
+  const { rank } = getRankInfoForXp(currentXp);
+  const baseXpForRank = getXpPerLevel(rank);
+  
+  // Base percentages of rank XP requirement
+  const mainQuestPercent = 0.4; // 40% of rank XP requirement
+  const sideQuestPercent = 0.16; // 16% of rank XP requirement (40% of main quest)
+  
+  const scaledAmount = Math.round(
+    baseXpForRank * (questType === "main" ? mainQuestPercent : sideQuestPercent)
+  );
+  
+  // Ensure minimum amounts to maintain progression
+  const minAmount = questType === "main" ? 10 : 4;
+  return Math.max(scaledAmount, minAmount);
+}
+
+// Helper function to get rank info for a specific XP amount (used for scaling calculations)
+function getRankInfoForXp(xp) {
+  let remainingXp = xp;
+  let totalLevels = 0;
+  
+  for (let rankIndex = 0; rankIndex < ranks.length; rankIndex++) {
+    const xpForThisRank = getXpPerLevel(ranks[rankIndex]) * levelsPerRank;
+    if (remainingXp >= xpForThisRank) {
+      remainingXp -= xpForThisRank;
+      totalLevels += levelsPerRank;
+    } else {
+      const levelsInCurrentRank = Math.floor(remainingXp / getXpPerLevel(ranks[rankIndex]));
+      totalLevels += levelsInCurrentRank;
+      break;
+    }
+  }
+  
+  const rankIndex = Math.floor(totalLevels / levelsPerRank);
+  const levelInRank = (totalLevels % levelsPerRank) + 1;
+  
+  return {
+    rank: ranks[Math.min(rankIndex, ranks.length - 1)],
+    level: levelInRank,
+    totalLevels
+  };
+}
+
 // QuestCard component
 function QuestCard({ quest, index, isEditing, onToggle, onDelete, onEdit, onStartEdit, onCancelEdit }) {
   return (
@@ -212,11 +258,15 @@ function App() {
         setStreak(0);
         console.log("Streak reset - no main quests completed yesterday");
         
-        // Apply rank decay - deduct XP if no main quests were completed yesterday
-        const decayAmount = 25; // Fixed decay amount per day
+        // Apply rank decay - now uses progressive scaling based on current rank
         setXp(prev => {
+          const decayAmount = getScaledXpAmount(prev, "main", false); // Use main quest scaling for decay
           const newXp = Math.max(0, prev - decayAmount);
-          console.log(`🔻 Rank decay applied: -${decayAmount} XP (${prev} → ${newXp})`);
+          console.log(`🔻 Rank decay applied: -${decayAmount} XP (${prev} → ${newXp}) - scaled to current rank`);
+          
+          // Placeholder for future decay animation
+          // TODO: Trigger XP decay animation/visual feedback
+          
           return newXp;
         });
       }
@@ -261,10 +311,16 @@ function App() {
     const today = new Date().toDateString();
     
     if (!updated[index].done) {
-      // Award XP when completing a quest (reduced amounts)
-      let gained = updated[index].type === "main" ? 20 : 8; // Reduced from 30/10
+      // Award XP when completing a quest - now uses progressive scaling
+      const currentXp = xp; // Capture current XP for scaling calculation
+      let gained = getScaledXpAmount(currentXp, updated[index].type, true);
       gained *= combo;
-      setXp(prev => prev + gained);
+      
+      setXp(prev => {
+        const newXp = prev + gained;
+        console.log(`🆙 Quest completed: +${gained} XP (${prev} → ${newXp}) - ${updated[index].type} quest with ${combo}x combo`);
+        return newXp;
+      });
       setCombo(prev => prev + 1);
       
       // Track if a main quest was completed today (for streak logic)
@@ -272,11 +328,21 @@ function App() {
         setDailyMainQuestCompleted(true);
         setLastCompletedDate(today);
       }
+      
+      // Placeholder for future XP gain animation
+      // TODO: Trigger XP gain animation/visual feedback
+      
     } else {
-      // Remove XP when undoing a completed quest
-      let lost = updated[index].type === "main" ? 20 : 8;
+      // Remove XP when undoing a completed quest - now uses progressive scaling
+      const currentXp = xp; // Capture current XP for scaling calculation
+      let lost = getScaledXpAmount(currentXp, updated[index].type, false);
       lost *= (combo > 1 ? combo - 1 : 1); // Use previous combo value
-      setXp(prev => Math.max(0, prev - lost));
+      
+      setXp(prev => {
+        const newXp = Math.max(0, prev - lost);
+        console.log(`🔽 Quest undone: -${lost} XP (${prev} → ${newXp}) - ${updated[index].type} quest`);
+        return newXp;
+      });
       setCombo(prev => Math.max(1, prev - 1));
       
       // Handle streak logic when undoing
@@ -286,6 +352,9 @@ function App() {
           setDailyMainQuestCompleted(false);
         }
       }
+      
+      // Placeholder for future XP loss animation
+      // TODO: Trigger XP loss animation/visual feedback
     }
     updated[index].done = !updated[index].done;
     setQuests(updated);
@@ -320,30 +389,7 @@ function App() {
   }
 
   function getRankInfo() {
-    // Calculate total levels across all ranks
-    let remainingXp = xp;
-    let totalLevels = 0;
-    
-    for (let rankIndex = 0; rankIndex < ranks.length; rankIndex++) {
-      const xpForThisRank = getXpPerLevel(ranks[rankIndex]) * levelsPerRank;
-      if (remainingXp >= xpForThisRank) {
-        remainingXp -= xpForThisRank;
-        totalLevels += levelsPerRank;
-      } else {
-        const levelsInCurrentRank = Math.floor(remainingXp / getXpPerLevel(ranks[rankIndex]));
-        totalLevels += levelsInCurrentRank;
-        break;
-      }
-    }
-    
-    const rankIndex = Math.floor(totalLevels / levelsPerRank);
-    const levelInRank = (totalLevels % levelsPerRank) + 1;
-    
-    return {
-      rank: ranks[Math.min(rankIndex, ranks.length - 1)],
-      level: levelInRank,
-      totalLevels
-    };
+    return getRankInfoForXp(xp);
   }
 
   const { rank, level } = getRankInfo();
