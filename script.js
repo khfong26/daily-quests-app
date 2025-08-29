@@ -18,15 +18,14 @@ const rankIcons = {
   "Emerald": "👑"
 };
 
-// Progressive XP system - exponential scaling for later ranks
+// Quadratic XP progression system - XP required = 100 * (rank ^ 2)
 function getXpPerLevel(rank) {
   const rankIndex = ranks.indexOf(rank);
-  // Exponential scaling: early levels require less XP, later levels require exponentially more
-  // Formula: base * (multiplier ^ rankIndex)
-  const baseXP = 50;
-  const multiplier = 1.6;
-  return Math.round(baseXP * Math.pow(multiplier, rankIndex));
-  // Results: Iron=50, Bronze=80, Silver=128, Gold=205, Platinum=328, Diamond=525, Emerald=840
+  // Quadratic scaling: XP required = 100 * (rank ^ 2)
+  // Adding 1 to rankIndex since we want rank 1, 2, 3, etc. not 0, 1, 2
+  const rankNumber = rankIndex + 1;
+  return 100 * Math.pow(rankNumber, 2);
+  // Results: Iron=100, Bronze=400, Silver=900, Gold=1600, Platinum=2500, Diamond=3600, Emerald=4900
 }
 
 // Calculate scaled XP amounts based on current rank for both gains and losses
@@ -83,36 +82,38 @@ function QuestCard({ quest, index, isEditing, onToggle, onDelete, onEdit, onStar
         quest.done ? "bg-green-800/50 border-green-400" : "bg-gray-800/80 border-gray-600"
       } ${quest.type === "main" ? "main-quest" : "side-quest"}`}
     >
-      <div className="flex items-center justify-between">
-        <div className="flex items-center flex-1">
+      <div className={`flex ${isEditing ? 'flex-col gap-3' : 'items-center justify-between'}`}>
+        <div className="flex items-center flex-1 min-w-0">
           {quest.attribute && (
             <span className={`attribute-tag ${quest.attribute} mr-3`}>
               {quest.attribute}
             </span>
           )}
           {isEditing ? (
-            <div className="flex gap-2 flex-1">
+            <div className="flex flex-col gap-2 flex-1 min-w-0">
               <input
                 type="text"
                 defaultValue={quest.name}
-                className="p-2 rounded-lg bg-gray-700 text-white flex-1 border border-gray-600 focus:border-blue-400 focus:outline-none transition-colors"
+                className="p-2 rounded-lg bg-gray-700 text-white w-full border border-gray-600 focus:border-blue-400 focus:outline-none transition-colors text-sm"
                 id={`editName-${index}`}
               />
-              <select defaultValue={quest.type} className="p-2 rounded-lg bg-gray-700 border border-gray-600 focus:border-blue-400 focus:outline-none transition-colors" id={`editType-${index}`}>
-                <option value="main">Main</option>
-                <option value="side">Side</option>
-              </select>
-              <select defaultValue={quest.attribute} className="p-2 rounded-lg bg-gray-700 border border-gray-600 focus:border-blue-400 focus:outline-none transition-colors" id={`editAttribute-${index}`}>
-                <option value="physical">Physical</option>
-                <option value="mental">Mental</option>
-                <option value="career">Career</option>
-                <option value="studying">Studying</option>
-              </select>
-              <select defaultValue={quest.frequency || 'normal'} className="p-2 rounded-lg bg-gray-700 border border-gray-600 focus:border-blue-400 focus:outline-none transition-colors" id={`editFrequency-${index}`}>
-                <option value="normal">Normal</option>
-                <option value="daily">Daily</option>
-                <option value="weekly">Weekly</option>
-              </select>
+              <div className="flex gap-2 flex-wrap">
+                <select defaultValue={quest.type} className="p-2 rounded-lg bg-gray-700 border border-gray-600 focus:border-blue-400 focus:outline-none transition-colors text-sm flex-1 min-w-0" id={`editType-${index}`}>
+                  <option value="main">Main</option>
+                  <option value="side">Side</option>
+                </select>
+                <select defaultValue={quest.attribute} className="p-2 rounded-lg bg-gray-700 border border-gray-600 focus:border-blue-400 focus:outline-none transition-colors text-sm flex-1 min-w-0" id={`editAttribute-${index}`}>
+                  <option value="physical">Physical</option>
+                  <option value="mental">Mental</option>
+                  <option value="career">Career</option>
+                  <option value="studying">Studying</option>
+                </select>
+                <select defaultValue={quest.frequency || 'normal'} className="p-2 rounded-lg bg-gray-700 border border-gray-600 focus:border-blue-400 focus:outline-none transition-colors text-sm flex-1 min-w-0" id={`editFrequency-${index}`}>
+                  <option value="normal">Normal</option>
+                  <option value="daily">Daily</option>
+                  <option value="weekly">Weekly</option>
+                </select>
+              </div>
             </div>
           ) : (
             <div className="flex-1">
@@ -123,9 +124,9 @@ function QuestCard({ quest, index, isEditing, onToggle, onDelete, onEdit, onStar
             </div>
           )}
         </div>
-        <div className="flex gap-2 ml-4">
+        <div className="flex gap-2 ml-4 flex-shrink-0">
           {isEditing ? (
-            <>
+            <div className="flex flex-col gap-1">
               <button
                 onClick={() => {
                   const newName = document.getElementById(`editName-${index}`).value.trim();
@@ -137,17 +138,17 @@ function QuestCard({ quest, index, isEditing, onToggle, onDelete, onEdit, onStar
                   }
                   onCancelEdit();
                 }}
-                className="bg-green-500 px-3 py-2 rounded-lg hover:bg-green-600 text-sm font-medium transition-colors"
+                className="bg-green-500 px-2 py-1 rounded-lg hover:bg-green-600 text-xs font-medium transition-colors"
               >
                 Save
               </button>
               <button
                 onClick={onCancelEdit}
-                className="bg-gray-500 px-3 py-2 rounded-lg hover:bg-gray-600 text-sm font-medium transition-colors"
+                className="bg-gray-500 px-2 py-1 rounded-lg hover:bg-gray-600 text-xs font-medium transition-colors"
               >
                 Cancel
               </button>
-            </>
+            </div>
           ) : (
             <>
               <button
@@ -193,7 +194,7 @@ function App() {
   
   // Animation states
   const [xpAnimations, setXpAnimations] = useState([]);
-  const [rankUpAnimation, setRankUpAnimation] = useState(null);
+  const [rankChangeAnimation, setRankChangeAnimation] = useState(null);
   const [comboAnimation, setComboAnimation] = useState(false);
   const [streakAnimation, setStreakAnimation] = useState(false);
   const [xpBarShine, setXpBarShine] = useState(false);
@@ -334,12 +335,16 @@ function App() {
     }, 2000);
   }
 
-  function triggerRankUpAnimation(newRank, newLevel) {
-    setRankUpAnimation({ rank: newRank, level: newLevel });
+  function triggerRankChangeAnimation(newRank, newLevel, isRankUp) {
+    setRankChangeAnimation({ 
+      rank: newRank, 
+      level: newLevel, 
+      isRankUp: isRankUp 
+    });
     
     // Remove animation after 3 seconds
     setTimeout(() => {
-      setRankUpAnimation(null);
+      setRankChangeAnimation(null);
     }, 3000);
   }
 
@@ -375,25 +380,26 @@ function App() {
     const today = new Date().toDateString();
     
     if (!updated[index].done) {
-      // Award XP when completing a quest - now uses progressive scaling
+      // Award XP when completing a quest - now uses quadratic scaling without combo bonus
       const currentXp = xp; // Capture current XP for scaling calculation
       const prevRankInfo = getRankInfoForXp(currentXp);
       let gained = getScaledXpAmount(currentXp, updated[index].type, true);
-      gained *= combo;
+      // Removed combo bonus multiplication for balanced progression
       
       setXp(prev => {
         const newXp = prev + gained;
         const newRankInfo = getRankInfoForXp(newXp);
         
-        console.log(`🆙 Quest completed: +${gained} XP (${prev} → ${newXp}) - ${updated[index].type} quest with ${combo}x combo`);
+        console.log(`🆙 Quest completed: +${gained} XP (${prev} → ${newXp}) - ${updated[index].type} quest`);
         
         // Trigger XP gain animation
         triggerXpAnimation(gained, true);
         triggerXpBarShine();
         
-        // Check for rank up
+        // Check for rank up or rank down
         if (newRankInfo.rank !== prevRankInfo.rank || newRankInfo.level !== prevRankInfo.level) {
-          triggerRankUpAnimation(newRankInfo.rank, newRankInfo.level);
+          const isRankUp = newRankInfo.totalLevels > prevRankInfo.totalLevels;
+          triggerRankChangeAnimation(newRankInfo.rank, newRankInfo.level, isRankUp);
         }
         
         return newXp;
@@ -412,17 +418,26 @@ function App() {
       }
       
     } else {
-      // Remove XP when undoing a completed quest - now uses progressive scaling
+      // Remove XP when undoing a completed quest - now without combo scaling
       const currentXp = xp; // Capture current XP for scaling calculation
+      const prevRankInfo = getRankInfoForXp(currentXp);
       let lost = getScaledXpAmount(currentXp, updated[index].type, false);
-      lost *= (combo > 1 ? combo - 1 : 1); // Use previous combo value
+      // Removed combo multiplication for consistent progression
       
       setXp(prev => {
         const newXp = Math.max(0, prev - lost);
+        const newRankInfo = getRankInfoForXp(newXp);
+        
         console.log(`🔽 Quest undone: -${lost} XP (${prev} → ${newXp}) - ${updated[index].type} quest`);
         
         // Trigger XP loss animation
         triggerXpAnimation(lost, false);
+        
+        // Check for rank down
+        if (newRankInfo.rank !== prevRankInfo.rank || newRankInfo.level !== prevRankInfo.level) {
+          const isRankUp = newRankInfo.totalLevels > prevRankInfo.totalLevels;
+          triggerRankChangeAnimation(newRankInfo.rank, newRankInfo.level, isRankUp);
+        }
         
         return newXp;
       });
@@ -487,9 +502,14 @@ function App() {
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
         <div className="bg-gradient-to-br from-gray-800/80 to-gray-900/80 p-6 rounded-xl border border-gray-700 text-center">
           <p className="text-sm text-gray-400 mb-2">Rank</p>
-          <p className="text-2xl font-bold rank-badge">
+          <p className="text-2xl font-bold rank-badge flex items-center justify-center">
             <span className="rank-icon">{rankIcons[rank]}</span>
             {rank} {level}
+            {rankChangeAnimation && (
+              <span className="ml-2 animate-bounce">
+                {rankChangeAnimation.isRankUp ? '⭐' : '⬇️'}
+              </span>
+            )}
           </p>
         </div>
         <div className="bg-gradient-to-br from-gray-800/80 to-gray-900/80 p-6 rounded-xl border border-gray-700 text-center">
@@ -610,14 +630,18 @@ function App() {
         </div>
       ))}
 
-      {/* Rank Up Celebration */}
-      {rankUpAnimation && (
-        <div className="rank-up-celebration">
-          <div className="text-6xl mb-4">🎉</div>
-          <div className="text-4xl font-bold text-yellow-400 mb-2">RANK UP!</div>
+      {/* Rank Change Celebration */}
+      {rankChangeAnimation && (
+        <div className={`rank-change-celebration ${rankChangeAnimation.isRankUp ? 'rank-up' : 'rank-down'}`}>
+          <div className="text-6xl mb-4">
+            {rankChangeAnimation.isRankUp ? '🎉' : '😔'}
+          </div>
+          <div className={`text-4xl font-bold mb-2 ${rankChangeAnimation.isRankUp ? 'text-yellow-400' : 'text-red-400'}`}>
+            {rankChangeAnimation.isRankUp ? 'RANK UP!' : 'RANK DOWN!'}
+          </div>
           <div className="text-2xl rank-badge">
-            <span className="rank-icon">{rankIcons[rankUpAnimation.rank]}</span>
-            {rankUpAnimation.rank} {rankUpAnimation.level}
+            <span className="rank-icon">{rankIcons[rankChangeAnimation.rank]}</span>
+            {rankChangeAnimation.rank} {rankChangeAnimation.level}
           </div>
         </div>
       )}
