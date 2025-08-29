@@ -7,6 +7,17 @@ const ranks = [
 ];
 const levelsPerRank = 3;
 
+// Rank icons mapping
+const rankIcons = {
+  "Iron": "⚙️",
+  "Bronze": "🥉", 
+  "Silver": "🥈",
+  "Gold": "🥇",
+  "Platinum": "💎",
+  "Diamond": "💍", 
+  "Emerald": "👑"
+};
+
 // Progressive XP system - exponential scaling for later ranks
 function getXpPerLevel(rank) {
   const rankIndex = ranks.indexOf(rank);
@@ -179,6 +190,13 @@ function App() {
   const [dailyMainQuestCompleted, setDailyMainQuestCompleted] = useState(false);
   const [lastActiveDate, setLastActiveDate] = useState(null);
   const [isLoaded, setIsLoaded] = useState(false);
+  
+  // Animation states
+  const [xpAnimations, setXpAnimations] = useState([]);
+  const [rankUpAnimation, setRankUpAnimation] = useState(null);
+  const [comboAnimation, setComboAnimation] = useState(false);
+  const [streakAnimation, setStreakAnimation] = useState(false);
+  const [xpBarShine, setXpBarShine] = useState(false);
 
   // Load saved data
   useEffect(() => {
@@ -252,8 +270,12 @@ function App() {
       const hadMainQuestCompletedYesterday = quests.some(q => q.type === "main" && q.done);
       
       if (hadMainQuestCompletedYesterday) {
-        setStreak(prev => prev + 1);
-        console.log("Streak incremented - main quests were completed yesterday");
+        setStreak(prev => {
+          const newStreak = prev + 1;
+          triggerStreakAnimation();
+          console.log("Streak incremented - main quests were completed yesterday");
+          return newStreak;
+        });
       } else {
         setStreak(0);
         console.log("Streak reset - no main quests completed yesterday");
@@ -294,6 +316,48 @@ function App() {
     return lastCompletedDate !== today;
   }
 
+  // Animation helper functions
+  function triggerXpAnimation(amount, isGain = true) {
+    const id = Date.now() + Math.random();
+    const animation = {
+      id,
+      amount,
+      isGain,
+      timestamp: Date.now()
+    };
+    
+    setXpAnimations(prev => [...prev, animation]);
+    
+    // Remove animation after 2 seconds
+    setTimeout(() => {
+      setXpAnimations(prev => prev.filter(a => a.id !== id));
+    }, 2000);
+  }
+
+  function triggerRankUpAnimation(newRank, newLevel) {
+    setRankUpAnimation({ rank: newRank, level: newLevel });
+    
+    // Remove animation after 3 seconds
+    setTimeout(() => {
+      setRankUpAnimation(null);
+    }, 3000);
+  }
+
+  function triggerComboAnimation() {
+    setComboAnimation(true);
+    setTimeout(() => setComboAnimation(false), 600);
+  }
+
+  function triggerStreakAnimation() {
+    setStreakAnimation(true);
+    setTimeout(() => setStreakAnimation(false), 1000);
+  }
+
+  function triggerXpBarShine() {
+    setXpBarShine(true);
+    setTimeout(() => setXpBarShine(false), 2000);
+  }
+
   function addQuest(name, type, attribute, frequency) {
     const newQuest = { 
       name, 
@@ -313,24 +377,39 @@ function App() {
     if (!updated[index].done) {
       // Award XP when completing a quest - now uses progressive scaling
       const currentXp = xp; // Capture current XP for scaling calculation
+      const prevRankInfo = getRankInfoForXp(currentXp);
       let gained = getScaledXpAmount(currentXp, updated[index].type, true);
       gained *= combo;
       
       setXp(prev => {
         const newXp = prev + gained;
+        const newRankInfo = getRankInfoForXp(newXp);
+        
         console.log(`🆙 Quest completed: +${gained} XP (${prev} → ${newXp}) - ${updated[index].type} quest with ${combo}x combo`);
+        
+        // Trigger XP gain animation
+        triggerXpAnimation(gained, true);
+        triggerXpBarShine();
+        
+        // Check for rank up
+        if (newRankInfo.rank !== prevRankInfo.rank || newRankInfo.level !== prevRankInfo.level) {
+          triggerRankUpAnimation(newRankInfo.rank, newRankInfo.level);
+        }
+        
         return newXp;
       });
-      setCombo(prev => prev + 1);
+      
+      setCombo(prev => {
+        const newCombo = prev + 1;
+        triggerComboAnimation();
+        return newCombo;
+      });
       
       // Track if a main quest was completed today (for streak logic)
       if (updated[index].type === "main") {
         setDailyMainQuestCompleted(true);
         setLastCompletedDate(today);
       }
-      
-      // Placeholder for future XP gain animation
-      // TODO: Trigger XP gain animation/visual feedback
       
     } else {
       // Remove XP when undoing a completed quest - now uses progressive scaling
@@ -341,6 +420,10 @@ function App() {
       setXp(prev => {
         const newXp = Math.max(0, prev - lost);
         console.log(`🔽 Quest undone: -${lost} XP (${prev} → ${newXp}) - ${updated[index].type} quest`);
+        
+        // Trigger XP loss animation
+        triggerXpAnimation(lost, false);
+        
         return newXp;
       });
       setCombo(prev => Math.max(1, prev - 1));
@@ -352,9 +435,6 @@ function App() {
           setDailyMainQuestCompleted(false);
         }
       }
-      
-      // Placeholder for future XP loss animation
-      // TODO: Trigger XP loss animation/visual feedback
     }
     updated[index].done = !updated[index].done;
     setQuests(updated);
@@ -407,17 +487,24 @@ function App() {
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
         <div className="bg-gradient-to-br from-gray-800/80 to-gray-900/80 p-6 rounded-xl border border-gray-700 text-center">
           <p className="text-sm text-gray-400 mb-2">Rank</p>
-          <p className="text-2xl font-bold rank-badge">{rank} {level}</p>
+          <p className="text-2xl font-bold rank-badge">
+            <span className="rank-icon">{rankIcons[rank]}</span>
+            {rank} {level}
+          </p>
         </div>
         <div className="bg-gradient-to-br from-gray-800/80 to-gray-900/80 p-6 rounded-xl border border-gray-700 text-center">
           <p className="text-sm text-gray-400 mb-2">Streak</p>
-          <p className={`text-2xl font-bold transition-all duration-500 ${streak > 0 ? 'text-yellow-400 streak-animation' : 'text-white'}`}>
+          <p className={`text-2xl font-bold transition-all duration-500 ${
+            streak > 0 ? 'text-yellow-400 streak-animation' : 'text-white'
+          } ${streakAnimation ? 'streak-boost' : ''}`}>
             {streak}
           </p>
         </div>
         <div className="bg-gradient-to-br from-gray-800/80 to-gray-900/80 p-6 rounded-xl border border-gray-700 text-center">
           <p className="text-sm text-gray-400 mb-2">Combo</p>
-          <p className={`text-2xl font-bold transition-all duration-300 ${combo > 1 ? 'text-green-400 transform scale-110' : 'text-white'}`}>
+          <p className={`text-2xl font-bold transition-all duration-300 ${
+            combo > 1 ? 'text-green-400 transform scale-110' : 'text-white'
+          } ${comboAnimation ? 'combo-boost' : ''}`}>
             x{combo}
           </p>
         </div>
@@ -427,7 +514,7 @@ function App() {
       <div className="mb-8 bg-gradient-to-br from-gray-800/80 to-gray-900/80 p-6 rounded-xl border border-gray-700">
         <div className="w-full bg-gray-700 rounded-full h-6 overflow-hidden">
           <div
-            className="bg-gradient-to-r from-green-400 to-blue-500 h-6 rounded-full transition-all duration-700 ease-out relative"
+            className={`bg-gradient-to-r from-green-400 to-blue-500 h-6 rounded-full transition-all duration-700 ease-out relative ${xpBarShine ? 'xp-bar-shine' : ''}`}
             style={{ width: `${Math.max(xpProgress, 2)}%` }}
           >
             <div className="absolute inset-0 bg-white/20 rounded-full animate-pulse"></div>
@@ -507,6 +594,33 @@ function App() {
           </button>
         </div>
       </div>
+
+      {/* Floating XP Animations */}
+      {xpAnimations.map(animation => (
+        <div
+          key={animation.id}
+          className={animation.isGain ? 'xp-gain' : 'xp-loss'}
+          style={{
+            top: '50%',
+            left: '50%',
+            transform: 'translate(-50%, -50%)',
+          }}
+        >
+          {animation.isGain ? '+' : '-'}{animation.amount} XP
+        </div>
+      ))}
+
+      {/* Rank Up Celebration */}
+      {rankUpAnimation && (
+        <div className="rank-up-celebration">
+          <div className="text-6xl mb-4">🎉</div>
+          <div className="text-4xl font-bold text-yellow-400 mb-2">RANK UP!</div>
+          <div className="text-2xl rank-badge">
+            <span className="rank-icon">{rankIcons[rankUpAnimation.rank]}</span>
+            {rankUpAnimation.rank} {rankUpAnimation.level}
+          </div>
+        </div>
+      )}
     </div>
   );
 }
