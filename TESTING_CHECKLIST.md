@@ -169,10 +169,10 @@ Combo resets at the start of each new day."
 
 **Testing Checklist:**
 
-* [ ] Early levels take less XP.
-* [ ] Later levels take more XP.
-* [ ] Level-up works as expected.
-* [ ] State persists across refresh.
+* [*] Early levels take less XP.
+* [*] Later levels take more XP.
+* [*] Level-up works as expected.
+* [*] State persists across refresh.
 
 ---
 
@@ -183,9 +183,9 @@ Combo resets at the start of each new day."
 
 **Testing Checklist:**
 
-* [ ] XP gain and loss both respect scaling.
-* [ ] Levels and XP display correctly.
-* [ ] Rank system is stable across refresh.
+* [*] XP gain and loss both respect scaling.
+* [*] Levels and XP display correctly.
+* [*] Rank system is stable across refresh.
 ---
 
 ## Step 7 — Visual feedback & animations
@@ -195,10 +195,10 @@ Combo resets at the start of each new day."
 
 **Testing Checklist:**
 
-* [ ] XP bar animates smoothly on quest completion or XP loss.
-* [ ] Rank-up shows icon and animation.
-* [ ] Daily streak and combo counters have visual animations when they update.
-* [ ] Effects do not break any functionality or localStorage persistence.
+* [*] XP bar animates smoothly on quest completion or XP loss.
+* [*] Rank-up shows icon and animation.
+* [*] Daily streak and combo counters have visual animations when they update.
+* [*] Effects do not break any functionality or localStorage persistence.
 
 
 ---
@@ -206,13 +206,16 @@ Combo resets at the start of each new day."
 ## Step 7b — Improved Quest Editing UI
 
 **Agent Prompt:**
-"Improve the quest editing interface so that editing fields are compact and do not overflow the screen. Ensure edit boxes resize properly or stay within card boundaries, and avoid overlapping with other quests."
+"Add rank-up and rank-down visuals and feedback: show an icon next to the rank display (⭐ for rank up, ⬇️ for rank down), play a small animation (fade-in/out or bounce) when the rank changes, and display a toast message like "Rank Up!" or "Rank Down." Adjust XP scaling to quadratic progression (XP required = 100 * (rank ^ 2)) and remove the combo bonus entirely so progression feels more balanced. Update the XP bar to reflect this new scaling so progress is clearly visible.  
+
+Improve the quest editing interface so that editing fields are compact and do not overflow the screen. Ensure edit boxes resize properly or stay within card boundaries, and avoid overlapping with other quests.
+"
 
 **Testing Checklist:**
 
-* [ ] Editing a quest keeps the input box within the quest card.
-* [ ] Edit fields resize properly without running off-screen.
-* [ ] Other quests remain visible and unaffected during editing.
+* [*] Editing a quest keeps the input box within the quest card.
+* [*] Edit fields resize properly without running off-screen.
+* [*] Other quests remain visible and unaffected during editing.
 
 ---
 
